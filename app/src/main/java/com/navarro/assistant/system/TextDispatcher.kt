@@ -3,28 +3,30 @@ package com.navarro.assistant.system
 import android.content.Context
 import android.util.Log
 import com.navarro.assistant.ai.MistralClient
+import com.navarro.assistant.tts.AndroidTTSManager
 
 /**
- * Cerveau local de l'assistant
- * - reçoit le texte (STT)
- * - décide quoi en faire
- * - appelle l'IA
- * - renvoie la réponse (TTS plus tard)
+ * Cerveau central local
+ * - reçoit le texte du STT
+ * - appelle l'IA (Mistral)
+ * - fait parler la réponse
  */
 object TextDispatcher {
 
     private var mistralClient: MistralClient? = null
+    private var ttsManager: AndroidTTSManager? = null
 
     /**
-     * À appeler UNE FOIS au démarrage du service
+     * À appeler UNE SEULE FOIS au démarrage du service
      */
     fun init(context: Context, apiKey: String) {
         mistralClient = MistralClient(apiKey)
+        ttsManager = AndroidTTSManager(context)
         Log.d("Navarro-Dispatcher", "Dispatcher initialisé")
     }
 
     /**
-     * Point d'entrée UNIQUE pour tout texte utilisateur
+     * Point d'entrée unique pour le texte utilisateur
      */
     fun onUserText(text: String) {
         Log.d("Navarro-Dispatcher", "Texte reçu : $text")
@@ -34,21 +36,16 @@ object TextDispatcher {
             return
         }
 
-        // Envoi du texte à l'IA
         mistralClient?.sendPrompt(text) { aiResponse ->
             onAIResponse(aiResponse)
         }
     }
 
     /**
-     * Réception de la réponse IA
+     * Réponse IA reçue
      */
     private fun onAIResponse(response: String) {
         Log.d("Navarro-Dispatcher", "Réponse IA : $response")
-
-        // 👉 PLUS TARD :
-        // - AndroidTTSManager.speak(response)
-        // - ActionManager.handle(response)
-        // - MemoryManager.save(...)
+        ttsManager?.speak(response)
     }
 }
