@@ -21,13 +21,18 @@ class ForegroundService : Service() {
         createNotificationChannel()
         startForeground(1, buildNotification("Assistant actif"))
 
+        // 🔴 AJOUT : initialisation du cerveau
+        TextDispatcher.init(
+            context = this,
+            apiKey = "TA_CLE_API_MISTRAL"
+        )
+
         // Initialisation du STT natif
         sttManager = AndroidSTTManager(this)
         sttManager.startListening()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // Service en mode sticky pour redémarrage automatique si tué
         return START_STICKY
     }
 
@@ -37,7 +42,6 @@ class ForegroundService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder? {
-        // Pas de binding
         return null
     }
 
