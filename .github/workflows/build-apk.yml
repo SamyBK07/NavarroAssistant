@@ -3,7 +3,7 @@ name: Build Navarro APK
 on:
   push:
     branches:
-      - main
+      - main  # branche principale
 
 jobs:
   build:
@@ -23,8 +23,8 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y unzip wget
-        wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
         mkdir -p $HOME/android-sdk/cmdline-tools
+        wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
         unzip cmdline-tools.zip -d $HOME/android-sdk/cmdline-tools
         mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
         export ANDROID_SDK_ROOT=$HOME/android-sdk
@@ -32,11 +32,19 @@ jobs:
         yes | sdkmanager --licenses
         sdkmanager "platform-tools" "platforms;android-26" "build-tools;34.0.0"
 
-    - name: Build APK
+    - name: Make Gradle Wrapper executable
+      run: chmod +x gradlew
+
+    - name: Build Debug APK
       run: ./gradlew assembleDebug
 
-    - name: Upload APK
+    - name: Build Release APK
+      run: ./gradlew assembleRelease
+
+    - name: Upload APKs
       uses: actions/upload-artifact@v4
       with:
-        name: navarro-apk
-        path: app/build/outputs/apk/debug/app-debug.apk
+        name: navarro-apks
+        path: |
+          app/build/outputs/apk/debug/app-debug.apk
+          app/build/outputs/apk/release/app-release.apk
