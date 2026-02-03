@@ -3,7 +3,7 @@ name: Build Navarro APK
 on:
   push:
     branches:
-      - main  # branche principale
+      - main  # Branche principale
 
 jobs:
   build:
@@ -38,13 +38,8 @@ jobs:
     - name: Build Debug APK
       run: ./gradlew assembleDebug
 
-    - name: Build Release APK
-      run: ./gradlew assembleRelease
-
-    - name: Upload APKs
+    - name: Upload Debug APK
       uses: actions/upload-artifact@v4
       with:
-        name: navarro-apks
-        path: |
-          app/build/outputs/apk/debug/app-debug.apk
-          app/build/outputs/apk/release/app-release.apk
+        name: navarro-apk
+        path: app/build/outputs/apk/debug/
