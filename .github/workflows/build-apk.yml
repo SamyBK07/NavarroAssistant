@@ -3,38 +3,47 @@ name: Build Navarro APK
 on:
   push:
     branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
-      # 1️⃣ Récupération du code
+      # 1️⃣ Récupération du dépôt
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Java 17 (OBLIGATOIRE)
+      # 2️⃣ Java (indispensable)
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      # 3️⃣ Android SDK officiel (rapide et fiable)
+      # 3️⃣ Android SDK officiel (le plus fiable)
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      # 4️⃣ Permissions Gradle
-      - name: Make Gradle Wrapper executable
+      # 4️⃣ Autoriser gradlew
+      - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
-      # 5️⃣ Build APK DEBUG
+      # 5️⃣ Build DEBUG (sans daemon pour éviter les blocages)
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
-      # 6️⃣ Upload APK
-      - name: Upload Debug APK
+      # 6️⃣ Lister tous les APK générés (IMPORTANT)
+      - name: List generated APKs
+        run: |
+          echo "===== APK FOUND ====="
+          find . -type f -name "*.apk" || true
+
+      # 7️⃣ Upload de TOUS les APK trouvés (aucun échec possible)
+      - name: Upload APKs
         uses: actions/upload-artifact@v4
         with:
-          name: navarro-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: navarro-apks
+          path: |
+            **/build/outputs/apk/**/*.apk
