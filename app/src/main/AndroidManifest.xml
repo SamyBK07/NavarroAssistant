@@ -29,7 +29,9 @@
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
 
         <!-- Activity principale -->
-        <activity android:name=".ui.MainActivity">
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -44,7 +46,9 @@
             android:exported="false" />
 
         <!-- Boot receiver pour reprogrammer les rappels -->
-        <receiver android:name=".system.BootReceiver">
+        <receiver
+            android:name=".system.BootReceiver"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
