@@ -1,1 +1,6 @@
-
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NavarroAssistant</string>
+    <string name="hello">Bonjour</string>
+    <string name="welcome_message">Bienvenue dans l'application</string>
+</resources>
