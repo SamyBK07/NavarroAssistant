@@ -17,7 +17,7 @@ class HotwordService : Service() {
         startForeground(1, createNotification())
 
         porcupineManager = PorcupineManager.Builder()
-            .setAccessKey("TA_CLE_PICOVOICE_ICI")
+            .setAccessKey("FYz0s4zjZ8mszfhVSdE5kh338bNcFa9EY7gEphcShwVEK5vxBfSGTA==")
             .setKeywordPath("navarro.ppn")
             .setSensitivity(0.7f)
             .build(this) { _ ->
