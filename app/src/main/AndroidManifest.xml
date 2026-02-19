@@ -10,7 +10,7 @@
         android:theme="@style/Theme.NavarroAssistant">
 
         <service
-            android:name=".hotword.HotwordService"
+            android:name=".HotwordService"
             android:exported="false"
             android:foregroundServiceType="microphone"/>
 
