@@ -7,7 +7,7 @@
     <application
         android:allowBackup="true"
         android:label="Navarro"
-        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        android:theme="@style/Theme.NavarroAssistant">
 
         <service
             android:name=".HotwordService"
