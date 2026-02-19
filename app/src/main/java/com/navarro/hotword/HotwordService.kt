@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import java.io.File
 
 class HotwordService : Service() {
 
@@ -16,11 +17,22 @@ class HotwordService : Service() {
 
         startForeground(1, createNotification())
 
+        // 🔹 Copier le fichier navarro.ppn depuis assets vers stockage interne
+        val keywordFile = File(filesDir, "navarro.ppn")
+
+        if (!keywordFile.exists()) {
+            assets.open("navarro.ppn").use { input ->
+                keywordFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+        }
+
         porcupineManager = PorcupineManager.Builder()
             .setAccessKey("FYz0s4zjZ8mszfhVSdE5kh338bNcFa9EY7gEphcShwVEK5vxBfSGTA==")
-            .setKeywordAssetPath("navarro.ppn")   // ✅ MODIFIÉ ICI
+            .setKeywordPath(keywordFile.absolutePath)   // ✅ vrai chemin absolu
             .setSensitivity(0.7f)
-            .build(this) { _ ->
+            .build(this) { keywordIndex: Int ->
                 Log.d("NAVARRO", "Mot détecté 🔥")
             }
 
