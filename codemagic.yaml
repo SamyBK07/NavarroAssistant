@@ -1,22 +1,6 @@
-workflows:
-  android-kotlin-workflow:
-    name: Android Kotlin Build
-
-    environment:
-      java: 17
-
-    scripts:
-      - name: Set up local.properties
-        script: echo "sdk.dir=$ANDROID_HOME" > "$CM_BUILD_DIR/local.properties"
-
-      - name: Grant permission
-        script: chmod +x gradlew
-
-      - name: Build Debug APK
-        script: ./gradlew assembleDebug --stacktrace
-
-      - name: Locate APK
-        script: find $CM_BUILD_DIR -name "*.apk"
-
-    artifacts:
-      - $CM_BUILD_DIR/app/build/outputs/**/*.apk
+- name: Debug project structure
+  script: |
+    echo "===== ROOT ====="
+    ls -la
+    echo "===== APP ====="
+    ls -la app
