@@ -5,6 +5,9 @@ workflows:
 
     environment:
       java: 17
+      # Optionnel : définir version Gradle si besoin
+      vars:
+        GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx2048m"
 
     scripts:
       - name: Set up local.properties
@@ -21,6 +24,10 @@ workflows:
           ls -la
           echo "===== APP ====="
           ls -la app
+
+      - name: Clean build
+        script: |
+          ./gradlew clean
 
       - name: Build Debug APK
         script: |
