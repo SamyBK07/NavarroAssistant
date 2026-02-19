@@ -1,0 +1,23 @@
+workflows:
+  android-kotlin-workflow:
+    name: Android Kotlin Build
+    max_build_duration: 60
+
+    environment:
+      java: 17
+
+    scripts:
+      - name: Set up local.properties
+        script: |
+          echo "sdk.dir=$ANDROID_HOME" > "$CM_BUILD_DIR/local.properties"
+
+      - name: Grant permission
+        script: |
+          chmod +x gradlew
+
+      - name: Build Debug APK
+        script: |
+          ./gradlew assembleDebug
+
+    artifacts:
+      - app/build/outputs/**/*.apk
