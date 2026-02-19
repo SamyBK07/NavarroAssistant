@@ -18,7 +18,7 @@ class HotwordService : Service() {
 
         porcupineManager = PorcupineManager.Builder()
             .setAccessKey("FYz0s4zjZ8mszfhVSdE5kh338bNcFa9EY7gEphcShwVEK5vxBfSGTA==")
-            .setKeywordPath("navarro.ppn")
+            .setKeywordAssetPath("navarro.ppn")   // ✅ MODIFIÉ ICI
             .setSensitivity(0.7f)
             .build(this) { _ ->
                 Log.d("NAVARRO", "Mot détecté 🔥")
