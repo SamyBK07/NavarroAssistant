@@ -15,33 +15,43 @@ class HotwordService : Service() {
     override fun onCreate() {
         super.onCreate()
 
-        startForeground(1, createNotification())
+        try {
 
-        // 🔹 Copier le fichier navarro.ppn depuis assets vers stockage interne
-        val keywordFile = File(filesDir, "navarro.ppn")
+            startForeground(1, createNotification())
 
-        if (!keywordFile.exists()) {
-            assets.open("navarro.ppn").use { input ->
-                keywordFile.outputStream().use { output ->
-                    input.copyTo(output)
+            val keywordFile = File(filesDir, "navarro.ppn")
+
+            if (!keywordFile.exists()) {
+                assets.open("navarro.ppn").use { input ->
+                    keywordFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
                 }
             }
+
+            porcupineManager = PorcupineManager.Builder()
+                .setAccessKey("FYz0s4zjZ8mszfhVSdE5kh338bNcFa9EY7gEphcShwVEK5vxBfSGTA==")
+                .setKeywordPath(keywordFile.absolutePath)
+                .setSensitivity(0.7f)
+                .build(this) { keywordIndex: Int ->
+                    Log.d("NAVARRO", "Mot détecté 🔥")
+                }
+
+            porcupineManager.start()
+
+        } catch (e: Exception) {
+            Log.e("NAVARRO_ERROR", "Erreur : ${e.message}")
+            e.printStackTrace()
         }
-
-        porcupineManager = PorcupineManager.Builder()
-            .setAccessKey("FYz0s4zjZ8mszfhVSdE5kh338bNcFa9EY7gEphcShwVEK5vxBfSGTA==")
-            .setKeywordPath(keywordFile.absolutePath)   // ✅ vrai chemin absolu
-            .setSensitivity(0.7f)
-            .build(this) { keywordIndex: Int ->
-                Log.d("NAVARRO", "Mot détecté 🔥")
-            }
-
-        porcupineManager.start()
     }
 
     override fun onDestroy() {
-        porcupineManager.stop()
-        porcupineManager.delete()
+        try {
+            porcupineManager.stop()
+            porcupineManager.delete()
+        } catch (e: Exception) {
+            Log.e("NAVARRO_ERROR", "Erreur destroy: ${e.message}")
+        }
         super.onDestroy()
     }
 
