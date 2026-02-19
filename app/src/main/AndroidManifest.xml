@@ -1,5 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Permissions -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
@@ -10,11 +11,13 @@
         android:label="Navarro"
         android:theme="@style/Theme.NavarroAssistant">
 
+        <!-- Service d'écoute -->
         <service
             android:name=".HotwordService"
             android:exported="false"
-            android:foregroundServiceType="microphone"/>
+            android:foregroundServiceType="microphone" />
 
+        <!-- Activity principale -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -25,5 +28,6 @@
             </intent-filter>
 
         </activity>
+
     </application>
 </manifest>
