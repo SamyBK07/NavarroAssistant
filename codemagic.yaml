@@ -1,6 +1,30 @@
-- name: Debug project structure
-  script: |
-    echo "===== ROOT ====="
-    ls -la
-    echo "===== APP ====="
-    ls -la app
+workflows:
+  android-kotlin-workflow:
+    name: Android Kotlin Build
+    max_build_duration: 60
+
+    environment:
+      java: 17
+
+    scripts:
+      - name: Set up local.properties
+        script: |
+          echo "sdk.dir=$ANDROID_HOME" > "$CM_BUILD_DIR/local.properties"
+
+      - name: Grant permission
+        script: |
+          chmod +x gradlew
+
+      - name: Debug project structure
+        script: |
+          echo "===== ROOT ====="
+          ls -la
+          echo "===== APP ====="
+          ls -la app
+
+      - name: Build Debug APK
+        script: |
+          ./gradlew assembleDebug
+
+    artifacts:
+      - $CM_BUILD_DIR/app/build/outputs/**/*.apk
