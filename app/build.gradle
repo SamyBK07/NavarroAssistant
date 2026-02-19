@@ -1,19 +1,12 @@
-plugins {
-    id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
-}
-
 android {
     namespace "com.navarro.hotword"
 
-    // Pour stabilité avec Porcupine + AndroidX
-    compileSdk 33
-    buildToolsVersion "33.0.2"
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.navarro.hotword"
         minSdk 26
-        targetSdk 33
+        targetSdk 34
         versionCode 1
         versionName "1.0"
     }
@@ -28,7 +21,6 @@ android {
         viewBinding true
     }
 
-    // Optionnel mais conseillé pour éviter certains warnings AndroidX
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
@@ -37,8 +29,4 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
-}
-
-dependencies {
-    implementation 'ai.picovoice:porcupine-android:3.0.0'
 }
