@@ -1,37 +1,39 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:padding="16dp"
+<!-- res/layout/activity_main.xml -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#000000">
 
-    <!-- Checklist des ressources -->
-    <TextView
-        android:id="@+id/statusView"
+    <!-- Barre de progression (téléchargement) -->
+    <ProgressBar
+        android:id="@+id/progressBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/status_text"
-        android:textSize="16sp"
-        android:textColor="#000000"
-        android:paddingBottom="16dp" />
+        android:layout_centerInParent="true"
+        android:visibility="gone"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:max="100"
+        android:progress="0" />
 
-    <!-- Zone de logs temps réel -->
+    <!-- Horloge analogique -->
+    <com.navarro.custom.ClockView
+        android:id="@+id/clockView"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:layout_centerInParent="true"
+        android:visibility="gone" />
+
+    <!-- Zone de texte pour les réponses -->
     <TextView
-        android:id="@+id/logView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="#EFEFEF"
-        android:textColor="#000000"
-        android:padding="8dp"
-        android:scrollbars="vertical" />
-
-    <!-- Bouton de démarrage du service -->
-    <Button
-        android:id="@+id/startButton"
+        android:id="@+id/responseText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/start_button"
-        android:layout_marginTop="16dp" />
+        android:layout_alignParentBottom="true"
+        android:layout_margin="16dp"
+        android:textColor="#00FF00"
+        android:textSize="18sp"
+        android:visibility="gone"
+        android:background="#33000000"
+        android:padding="8dp" />
 
-</LinearLayout>
+</RelativeLayout>
