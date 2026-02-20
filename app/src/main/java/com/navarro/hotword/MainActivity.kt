@@ -1,58 +1,87 @@
-package com.navarro.hotword
+// MainActivity.kt
+package com.navarro
 
-import android.Manifest
+import android.app.DownloadManager
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
+import android.content.IntentFilter
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import com.navarro.hotword.HotwordService
+import java.io.File
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var progressBar: ProgressBar
+    private lateinit var clockView: ClockView
+    private lateinit var responseText: TextView
+    private var downloadId: Long = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
 
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.RECORD_AUDIO
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.RECORD_AUDIO),
-                1
-            )
+        progressBar = findViewById(R.id.progressBar)
+        clockView = findViewById(R.id.clockView)
+        responseText = findViewById(R.id.responseText)
+
+        // Vérifie si le modèle VOSK est déjà téléchargé
+        if (!isModelDownloaded()) {
+            downloadModel()
         } else {
             startHotwordService()
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    private fun isModelDownloaded(): Boolean {
+        val modelDir = File(filesDir, "vosk-model-small-fr-0.22")
+        return modelDir.exists() && modelDir.listFiles()?.isNotEmpty() == true
+    }
 
-        if (requestCode == 1 &&
-            grantResults.isNotEmpty() &&
-            grantResults[0] == PackageManager.PERMISSION_GRANTED
-        ) {
-            startHotwordService()
+    private fun downloadModel() {
+        progressBar.visibility = ProgressBar.VISIBLE
+        val request = DownloadManager.Request(Uri.parse("https://alphacephei.com/vosk/models/vosk-model-small-fr-0.22.zip"))
+            .setTitle("Téléchargement du modèle")
+            .setDescription("Modèle VOSK pour la reconnaissance vocale")
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "vosk-model.zip")
+            .setAllowedOverMetered(true)
+            .setAllowedOverRoaming(true)
+
+        val downloadManager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+        downloadId = downloadManager.enqueue(request)
+
+        // Écouteur pour la fin du téléchargement
+        registerReceiver(onDownloadComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+    }
+
+    private val onDownloadComplete = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == DownloadManager.ACTION_DOWNLOAD_COMPLETE) {
+                unregisterReceiver(this)
+                progressBar.visibility = ProgressBar.GONE
+                clockView.visibility = ClockView.VISIBLE
+                startHotwordService()
+            }
         }
     }
 
     private fun startHotwordService() {
-        val intent = Intent(this, HotwordService::class.java)
+        startService(Intent(this, HotwordService::class.java))
+    }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
-        }
+    // Affiche une réponse dans la zone de texte
+    fun showResponse(text: String) {
+        responseText.text = text
+        responseText.visibility = TextView.VISIBLE
+    }
 
-        finish()
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(onDownloadComplete)
     }
 }
