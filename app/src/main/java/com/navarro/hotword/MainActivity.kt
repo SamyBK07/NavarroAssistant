@@ -1,87 +1,46 @@
-// MainActivity.kt
-package com.navarro
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000"
+    tools:context=".MainActivity">
 
-import android.app.DownloadManager
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.net.Uri
-import android.os.Bundle
-import android.os.Environment
-import android.widget.ProgressBar
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
-import com.navarro.hotword.HotwordService
-import java.io.File
+    <!-- Barre de progression pour le téléchargement du modèle VOSK -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="visible" <!-- Visible au démarrage -->
+        android:indeterminate="false"
+        android:max="100"
+        android:progress="0"
+        android:progressTint="#00FF00" />
 
-class MainActivity : AppCompatActivity() {
-    private lateinit var progressBar: ProgressBar
-    private lateinit var clockView: ClockView
-    private lateinit var responseText: TextView
-    private var downloadId: Long = -1
+    <!-- Horloge analogique fluorescente (masquée au démarrage) -->
+    <com.navarro.custom.ClockView
+        android:id="@+id/clockView"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:layout_centerInParent="true"
+        android:visibility="gone" />
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+    <!-- Zone de texte pour afficher les réponses de l'assistant -->
+    <TextView
+        android:id="@+id/responseText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="32dp"
+        android:visibility="gone"
+        android:background="#33000000"
+        android:padding="16dp"
+        android:textColor="#00FF00"
+        android:textSize="18sp"
+        android:textStyle="bold" />
 
-        progressBar = findViewById(R.id.progressBar)
-        clockView = findViewById(R.id.clockView)
-        responseText = findViewById(R.id.responseText)
-
-        // Vérifie si le modèle VOSK est déjà téléchargé
-        if (!isModelDownloaded()) {
-            downloadModel()
-        } else {
-            startHotwordService()
-        }
-    }
-
-    private fun isModelDownloaded(): Boolean {
-        val modelDir = File(filesDir, "vosk-model-small-fr-0.22")
-        return modelDir.exists() && modelDir.listFiles()?.isNotEmpty() == true
-    }
-
-    private fun downloadModel() {
-        progressBar.visibility = ProgressBar.VISIBLE
-        val request = DownloadManager.Request(Uri.parse("https://alphacephei.com/vosk/models/vosk-model-small-fr-0.22.zip"))
-            .setTitle("Téléchargement du modèle")
-            .setDescription("Modèle VOSK pour la reconnaissance vocale")
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "vosk-model.zip")
-            .setAllowedOverMetered(true)
-            .setAllowedOverRoaming(true)
-
-        val downloadManager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
-        downloadId = downloadManager.enqueue(request)
-
-        // Écouteur pour la fin du téléchargement
-        registerReceiver(onDownloadComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
-    }
-
-    private val onDownloadComplete = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == DownloadManager.ACTION_DOWNLOAD_COMPLETE) {
-                unregisterReceiver(this)
-                progressBar.visibility = ProgressBar.GONE
-                clockView.visibility = ClockView.VISIBLE
-                startHotwordService()
-            }
-        }
-    }
-
-    private fun startHotwordService() {
-        startService(Intent(this, HotwordService::class.java))
-    }
-
-    // Affiche une réponse dans la zone de texte
-    fun showResponse(text: String) {
-        responseText.text = text
-        responseText.visibility = TextView.VISIBLE
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        unregisterReceiver(onDownloadComplete)
-    }
-}
+</RelativeLayout>
