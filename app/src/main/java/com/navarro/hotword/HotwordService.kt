@@ -136,7 +136,12 @@ class HotwordService : Service() {
 
     // ================= GESTION DES COMMANDES =================
     private fun handleCommand(text: String) {
+        // Sauvegarde la question de l'utilisateur dans l'historique
+        MemoryManager.addMessage(this, "user", text)
+
         CommandManager.executeCommand(text) { response ->
+            // Sauvegarde la réponse de l'assistant dans l'historique
+            MemoryManager.addMessage(this, "assistant", response)
             sendResponseToActivity(response)
             startPassiveListening()
         }
