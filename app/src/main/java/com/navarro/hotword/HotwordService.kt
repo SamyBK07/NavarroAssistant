@@ -53,7 +53,7 @@ class HotwordService : Service() {
         }.start()
     }
 
-    // ================= PASSIVE =================
+    // ================= PASSIVE MODE =================
 
     private fun startPassiveListening() {
 
@@ -80,16 +80,15 @@ class HotwordService : Service() {
         Log.d("NAVARRO", "Mode PASSIF")
     }
 
-    // ================= WAKE =================
+    // ================= WAKE WORD =================
 
     private fun onWakeWordDetected() {
-
         speak("Oui monsieur") {
             startActiveListening()
         }
     }
 
-    // ================= ACTIVE =================
+    // ================= ACTIVE MODE =================
 
     private fun startActiveListening() {
 
@@ -119,6 +118,7 @@ class HotwordService : Service() {
             override fun onTimeout() {}
         })
 
+        // Timeout 15 secondes
         Handler(mainLooper).postDelayed({
             if (currentState == State.ACTIVE) {
                 speechService?.stop()
@@ -129,11 +129,12 @@ class HotwordService : Service() {
         Log.d("NAVARRO", "Mode ACTIF")
     }
 
-    // ================= COMMANDES =================
+    // ================= COMMAND HANDLER =================
 
     private fun handleCommand(text: String) {
 
         when {
+
             text.contains("heure", true) -> {
                 val time = SimpleDateFormat("HH:mm", Locale.FRANCE)
                     .format(Date())
@@ -155,7 +156,7 @@ class HotwordService : Service() {
             }
 
             else -> {
-                ApiClient.sendToMistral(text) { response ->
+                SmartApi.send(this, text) { response ->
                     speak(response) {
                         startPassiveListening()
                     }
@@ -164,7 +165,7 @@ class HotwordService : Service() {
         }
     }
 
-    // ================= TTS =================
+    // ================= TEXT TO SPEECH =================
 
     private fun speak(text: String, onDone: (() -> Unit)? = null) {
 
