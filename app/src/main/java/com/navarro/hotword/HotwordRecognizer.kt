@@ -2,101 +2,62 @@ package com.navarro.hotword
 
 import android.content.Context
 import com.navarro.core.Logger
-import org.json.JSONObject
+import org.vosk.LibVosk
 import org.vosk.Model
 import org.vosk.Recognizer
 import org.vosk.android.RecognitionListener
 import org.vosk.android.SpeechService
-import java.io.File
-import java.util.concurrent.atomic.AtomicBoolean
+import org.vosk.android.SpeechStreamService
+import org.vosk.android.StorageService
 
 class HotwordRecognizer(
     private val context: Context,
     private val modelPath: String,
-    private val onHotwordDetected: () -> Unit
-) : RecognitionListener {
-
-    private var model: Model? = null
+    private val onDetected: (ShortArray) -> Unit
+) {
+    private var speechService: SpeechStreamService? = null
     private var recognizer: Recognizer? = null
-    private var speechService: SpeechService? = null
+    private val audioBuffer = ShortArray(4096)
+    private var isListening = false
 
-    private val sampleRate = 16000f
-    private val detectionLock = AtomicBoolean(false)
+    init {
+        LibVosk.setLogLevel(0) // Désactive les logs VOSK
+        StorageService.unpack(context, "hotword_grammar.json", "grammar", true)
+    }
 
-    fun start() {
+    fun startListening() {
+        if (isListening) return
         try {
-            val modelDir = File(modelPath)
-
-            if (!modelDir.exists()) {
-                Logger.e("Modèle VOSK introuvable: $modelPath")
-                return
+            val model = Model(modelPath)
+            recognizer = Recognizer(model, 16000f, "[\"navarro\", \"[unk]\"]")
+            speechService = SpeechStreamService(recognizer, 16000f, "grammar").apply {
+                setListener(object : RecognitionListener {
+                    override fun onPartialResult(hypothesis: String?) {}
+                    override fun onResult(hypothesis: String?) {
+                        if (hypothesis?.contains("navarro") == true) {
+                            onDetected(audioBuffer)
+                        }
+                    }
+                    override fun onError(e: Exception?) {
+                        Logger.e("Erreur HotwordRecognizer: ${e?.message}")
+                    }
+                    override fun onTimeout() {}
+                })
             }
-
-            Logger.i("Chargement modèle VOSK...")
-            model = Model(modelDir.absolutePath)
-
-            val grammar = "[\"navarro\", \"[unk]\"]"
-            recognizer = Recognizer(model, sampleRate, grammar)
-
-            speechService = SpeechService(recognizer, sampleRate)
-            speechService?.startListening(this)
-
-            Logger.i("Hotword écoute active")
-
+            speechService?.startListening()
+            isListening = true
+            Logger.d("HotwordRecognizer démarré")
         } catch (e: Exception) {
-            Logger.e("Erreur start hotword", e)
+            Logger.e("Erreur initialisation HotwordRecognizer: ${e.message}")
         }
     }
 
-    fun stop() {
-        try {
-            speechService?.stop()
-            speechService?.shutdown()
-            recognizer?.close()
-            model?.close()
-
-            speechService = null
-            recognizer = null
-            model = null
-            detectionLock.set(false)
-
-            Logger.i("Hotword arrêté")
-
-        } catch (e: Exception) {
-            Logger.e("Erreur stop hotword", e)
-        }
-    }
-
-    override fun onPartialResult(hypothesis: String?) {
-        val text = extractText(hypothesis) ?: return
-
-        Logger.d("Partial: $text")
-
-        if (text.contains("navarro", true) && detectionLock.compareAndSet(false, true)) {
-            Logger.i("Hotword détecté")
-            onHotwordDetected.invoke()
-        }
-    }
-
-    override fun onResult(hypothesis: String?) {}
-    override fun onFinalResult(hypothesis: String?) {}
-
-    override fun onError(e: Exception?) {
-        Logger.e("Hotword error", e)
-    }
-
-    override fun onTimeout() {
-        Logger.w("Hotword timeout")
-    }
-
-    private fun extractText(json: String?): String? {
-        if (json == null) return null
-
-        return try {
-            val obj = JSONObject(json)
-            obj.optString("partial", obj.optString("text", ""))
-        } catch (e: Exception) {
-            null
-        }
+    fun stopListening() {
+        speechService?.stop()
+        speechService = null
+        recognizer?.close()
+        recognizer = null
+        isListening = false
+        Logger.d("HotwordRecognizer arrêté")
     }
 }
