@@ -1,68 +1,94 @@
 package com.navarro.hotword
 
+import android.app.DownloadManager
+import android.content.BroadcastReceiver
 import android.content.Context
-import android.util.Log
-import com.navarro.core.Logger
-import java.io.*
-import java.net.URL
+import android.content.Intent
+import android.content.IntentFilter
+import android.net.Uri
+import android.os.Environment
+import com.navarro.core.AppConfig
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.util.zip.ZipInputStream
 
-class ModelDownloader(private val context: Context) {
+object ModelDownloader {
 
-    private val modelUrl =
-        "https://alphacephei.com/vosk/models/vosk-model-small-fr-0.22.zip"
+    /**
+     * Télécharge et extrait le modèle VOSK.
+     * @param context Contexte Android.
+     * @param onSuccess Callback en cas de succès.
+     * @param onError Callback en cas d'erreur.
+     */
+    fun downloadVoskModel(
+        context: Context,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val modelDir = AppConfig.getVoskModelDir(context.applicationContext)
+        if (modelDir.exists() && modelDir.listFiles().isNotEmpty()) {
+            onSuccess()
+            return
+        }
 
-    private val modelDir = File(context.filesDir, "vosk-model")
+        val request = DownloadManager.Request(Uri.parse(AppConfig.VOSK_MODEL_URL))
+            .setTitle("Téléchargement du modèle vocal")
+            .setDescription("Nécessaire pour la reconnaissance vocale")
+            .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "vosk-model.zip")
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
 
-    fun isModelPresent(): Boolean {
-        return modelDir.exists() && modelDir.list()?.isNotEmpty() == true
-    }
+        val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val downloadId = downloadManager.enqueue(request)
 
-    fun downloadModel(onComplete: () -> Unit, onError: (Exception) -> Unit) {
-        Thread {
-            try {
-                Logger.i("ModelDownloader: téléchargement modèle VOSK")
-
-                val zipFile = File(context.cacheDir, "model.zip")
-                URL(modelUrl).openStream().use { input ->
-                    FileOutputStream(zipFile).use { output ->
-                        input.copyTo(output)
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
+                if (id == downloadId) {
+                    context.unregisterReceiver(this)
+                    val downloadFile = File(
+                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                        "vosk-model.zip"
+                    )
+                    try {
+                        unzipModel(downloadFile, modelDir)
+                        downloadFile.delete() // Supprime le ZIP après extraction
+                        onSuccess()
+                    } catch (e: Exception) {
+                        onError("Échec de l'extraction : ${e.message}")
                     }
                 }
-
-                unzip(zipFile, modelDir)
-                zipFile.delete()
-
-                Logger.i("ModelDownloader: modèle prêt")
-                onComplete()
-
-            } catch (e: Exception) {
-                Logger.e("ModelDownloader erreur: ${e.message}")
-                onError(e)
             }
-        }.start()
+        }
+
+        context.registerReceiver(
+            receiver,
+            IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
+        )
     }
 
-    private fun unzip(zipFile: File, targetDir: File) {
-        ZipInputStream(FileInputStream(zipFile)).use { zis ->
-            var entry = zis.nextEntry
+    /**
+     * Extrait un fichier ZIP dans un dossier.
+     * @param zipFile Fichier ZIP à extraire.
+     * @param outputDir Dossier de destination.
+     */
+    private fun unzipModel(zipFile: File, outputDir: File) {
+        outputDir.mkdirs()
+        ZipInputStream(FileInputStream(zipFile)).use { zip ->
+            var entry = zip.nextEntry
             while (entry != null) {
-                val newFile = File(targetDir, entry.name)
-
+                val outputFile = File(outputDir, entry.name)
                 if (entry.isDirectory) {
-                    newFile.mkdirs()
+                    outputFile.mkdirs()
                 } else {
-                    newFile.parentFile?.mkdirs()
-                    FileOutputStream(newFile).use { fos ->
-                        zis.copyTo(fos)
+                    outputFile.parentFile?.mkdirs()
+                    FileOutputStream(outputFile).use { output ->
+                        zip.copyTo(output)
                     }
                 }
-
-                entry = zis.nextEntry
+                zip.closeEntry()
+                entry = zip.nextEntry
             }
-            zis.closeEntry()
         }
     }
-
-    fun getModelPath(): String = modelDir.absolutePath
 }
