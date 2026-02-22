@@ -1,41 +1,55 @@
 package com.navarro.ai
 
 import com.navarro.core.Logger
+import org.json.JSONArray
+import org.json.JSONObject
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
- * Construit le prompt complet pour l'IA
+ * Construit le contexte conversationnel pour Mistral Chat API
  */
 class PromptBuilder {
 
-    private val contexteHistorique = mutableListOf<String>()
+    private val historique = CopyOnWriteArrayList<JSONObject>()
+
+    private val systemMessage = JSONObject()
+        .put("role", "system")
+        .put("content", "Tu es Navarro, assistant vocal style Jarvis. Réponds brièvement et naturellement.")
 
     /**
-     * Ajoute la commande au contexte et génère le prompt final
+     * Ajoute message utilisateur et retourne le tableau messages complet
      */
-    fun construirePrompt(commande: String): String {
-        contexteHistorique.add("Utilisateur: $commande")
+    fun construireMessages(commande: String): JSONArray {
+        val userMsg = JSONObject()
+            .put("role", "user")
+            .put("content", commande)
 
-        // Limite contexte pour éviter prompt trop long
-        val derniereContexte = contexteHistorique.takeLast(10).joinToString("\n")
+        historique.add(userMsg)
 
-        val promptFinal = """
-            Tu es NavarroAssistant, un assistant vocal personnel.
-            Réponds de manière concise, polie et utile.
-            
-            Contexte:
-            $derniereContexte
-            
-            Réponse:
-        """.trimIndent()
+        // Limite mémoire conversationnelle
+        val derniers = historique.takeLast(10)
 
-        Logger.i("PromptBuilder: prompt généré -> $promptFinal")
-        return promptFinal
+        val messages = JSONArray()
+        messages.put(systemMessage)
+
+        derniers.forEach { messages.put(it) }
+
+        Logger.i("PromptBuilder: messages générés -> $messages")
+        return messages
     }
 
     /**
-     * Optionnel: nettoyer le contexte
+     * Ajoute la réponse IA pour continuité conversationnelle
      */
-    fun reinitialiserContexte() {
-        contexteHistorique.clear()
+    fun ajouterReponseIA(reponse: String) {
+        val aiMsg = JSONObject()
+            .put("role", "assistant")
+            .put("content", reponse)
+
+        historique.add(aiMsg)
+    }
+
+    fun reset() {
+        historique.clear()
     }
 }
