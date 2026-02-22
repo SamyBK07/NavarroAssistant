@@ -1,29 +1,17 @@
 package com.navarro.core
 
+import android.app.Application
+import java.io.File
+
 object AppConfig {
+    // 🔑 Clé API Mistral (à remplacer par ta clé réelle)
+    const val MISTRAL_API_KEY = "PD85t8aUMKTkZGDlAWhOWyxywwYRkSq1" // Ex: "x123456789..."
 
-    // ---------- APP ----------
-    const val APP_NAME = "Navarro Assistant"
-    const val TAG = "Navarro"
+    // 📥 URL du modèle VOSK (modèle français léger)
+    const val VOSK_MODEL_URL = "https://alphacephei.com/vosk/models/vosk-model-small-fr-0.22.zip"
 
-    // ---------- VOSK ----------
-    const val MODEL_NAME = "vosk-model-small-fr-0.22"
-    const val MODEL_ZIP_NAME = "vosk-model-small-fr-0.22.zip"
-    const val MODEL_DOWNLOAD_URL =
-        "https://alphacephei.com/vosk/models/vosk-model-small-fr-0.22.zip"
-
-    // ---------- NOTIFICATION ----------
-    const val NOTIFICATION_CHANNEL_ID = "navarro_hotword_channel"
-    const val NOTIFICATION_CHANNEL_NAME = "Assistant actif"
-    const val NOTIFICATION_ID = 1001
-
-    // ---------- ACTIONS ----------
-    const val ACTION_START_HOTWORD = "com.navarro.action.START_HOTWORD"
-    const val ACTION_STOP_HOTWORD = "com.navarro.action.STOP_HOTWORD"
-    const val ACTION_START_COMMAND = "com.navarro.action.START_COMMAND"
-    const val ACTION_STOP_COMMAND = "com.navarro.action.STOP_COMMAND"
-
-    // ---------- FILES ----------
-    const val MODELS_DIR = "models"
-
+    // 📁 Dossier de stockage du modèle VOSK
+    fun getVoskModelDir(context: Application): File {
+        return File(context.filesDir, "models")
+    }
 }
