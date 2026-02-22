@@ -3,57 +3,62 @@ package com.navarro.voice
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
-import android.util.Log
-import org.vosk.Model
-import org.vosk.Recognizer
-import org.vosk.android.SpeechService
-import java.io.File
+import com.navarro.core.AppConfig
+import com.navarro.core.Logger
+import com.navarro.hotword.HotwordService
 
 class VoiceCommandService : Service() {
 
-    private var model: Model? = null
-    private var recognizer: Recognizer? = null
-    private var speechService: SpeechService? = null
+    private var speechManager: SpeechRecognizerManager? = null
 
     override fun onCreate() {
         super.onCreate()
-        initFullRecognition()
+        Logger.i("VoiceCommandService created")
     }
 
-    private fun initFullRecognition() {
-        Thread {
-            try {
-                val modelPath = File(filesDir, "vosk-model-fr")
-                model = Model(modelPath.absolutePath)
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
-                recognizer = Recognizer(model, 16000.0f)
+        when (intent?.action) {
+            AppConfig.ACTION_START_COMMAND -> startCommandListening()
+            AppConfig.ACTION_STOP_COMMAND -> stopSelf()
+        }
 
-                speechService = SpeechService(recognizer, 16000.0f)
-                speechService?.startListening { result ->
+        return START_NOT_STICKY
+    }
 
-                    if (recognizer?.acceptWaveForm(result.toByteArray(), result.length) == true) {
-                        val finalResult = recognizer?.result
-                        Log.d("Navarro", "Commande détectée: $finalResult")
+    private fun startCommandListening() {
+        if (speechManager != null) return
 
-                        stopSelf()
-                    }
-                }
-
-            } catch (e: Exception) {
-                Log.e("Navarro", "Erreur VoiceCommandService", e)
+        speechManager = SpeechRecognizerManager(this,
+            onResult = { text ->
+                Logger.i("Command: $text")
+                restartHotword()
+            },
+            onError = {
+                Logger.e("Command recognition error")
+                restartHotword()
             }
-        }.start()
+        )
+
+        speechManager?.start()
+    }
+
+    private fun restartHotword() {
+        speechManager?.stop()
+        speechManager = null
+
+        val intent = Intent(this, HotwordService::class.java).apply {
+            action = AppConfig.ACTION_START_HOTWORD
+        }
+        startForegroundService(intent)
+
+        stopSelf()
     }
 
     override fun onDestroy() {
-        speechService?.stop()
-        recognizer?.close()
-        model?.close()
+        speechManager?.stop()
+        Logger.i("VoiceCommandService destroyed")
         super.onDestroy()
-
-        // Relancer hotword après commande
-        val intent = Intent(this, com.navarro.hotword.HotwordService::class.java)
-        startForegroundService(intent)
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
