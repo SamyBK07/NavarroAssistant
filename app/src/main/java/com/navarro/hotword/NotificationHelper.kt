@@ -1,31 +1,41 @@
 package com.navarro.hotword
 
-import android.app.*
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.navarro.R
+import com.navarro.core.AppConfig
 
 object NotificationHelper {
 
-    private const val CHANNEL_ID = "navarro_hotword_channel"
-
-    fun createNotification(context: Context): Notification {
+    fun createChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                CHANNEL_ID,
-                "Navarro Hotword Service",
+                AppConfig.NOTIFICATION_CHANNEL_ID,
+                AppConfig.NOTIFICATION_CHANNEL_NAME,
                 NotificationManager.IMPORTANCE_LOW
-            )
-            val manager = context.getSystemService(NotificationManager::class.java)
+            ).apply {
+                description = "Assistant vocal actif"
+                setSound(null, null)
+                enableVibration(false)
+            }
+
+            val manager =
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.createNotificationChannel(channel)
         }
+    }
 
-        return NotificationCompat.Builder(context, CHANNEL_ID)
-            .setContentTitle("Navarro actif")
-            .setContentText("Écoute en arrière-plan")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+    fun buildForegroundNotification(context: Context): Notification {
+        return NotificationCompat.Builder(context, AppConfig.NOTIFICATION_CHANNEL_ID)
+            .setContentTitle("Navarro Assistant")
+            .setContentText("Assistant actif")
+            .setSmallIcon(R.drawable.ic_mic) // 👉 ajoute une icône micro
             .setOngoing(true)
+            .setSilent(true)
             .build()
     }
 }
