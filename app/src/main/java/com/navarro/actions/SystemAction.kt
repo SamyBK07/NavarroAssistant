@@ -1,12 +1,8 @@
 package com.navarro.actions
 
-import android.content.Context
-import com.navarro.core.Logger
-
-class SystemAction(private val contexte: Context) {
-
-    fun executer(commande: String) {
-        Logger.i("SystemAction: exécution pour -> $commande")
-        // TODO: Intégrer commandes système (mode silencieux, volume, etc.)
+class SystemAction : BaseAction() {
+    override fun execute(command: String): String {
+        // TODO: Actions système (ex: mode avion)
+        return "Action système pour: $command (non implémentée)"
     }
 }
