@@ -23,26 +23,34 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
     kotlinOptions {
         jvmTarget = '1.8'
     }
+
     buildFeatures {
         viewBinding true
+        dataBinding false  // Désactivé car non utilisé
     }
+
+    // Ajout explicite de la version des outils de build
+    buildToolsVersion '34.0.0'
 }
 
 dependencies {
+    // Dépendances Android de base
     implementation 'androidx.core:core-ktx:1.12.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
-    // VOSK pour la reconnaissance vocale
-    implementation 'com.alphacep:vosk-android:0.3.34'
+    // VOSK pour la reconnaissance vocale (version correcte + dépôt JitPack)
+    implementation 'org.vosk:vosk-android:0.3.34'
 
     // OkHttp pour les appels API Mistral
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
@@ -53,6 +61,7 @@ dependencies {
     // Coroutines pour les appels asynchrones
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
 
+    // Tests
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
