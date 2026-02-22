@@ -1,12 +1,8 @@
 package com.navarro.actions
 
-import android.content.Context
-import com.navarro.core.Logger
-
-class ReminderAction(private val contexte: Context) {
-
-    fun executer(commande: String) {
-        Logger.i("ReminderAction: exécution pour -> $commande")
-        // TODO: Intégrer création de rappel ou alarme
+class ReminderAction : BaseAction() {
+    override fun execute(command: String): String {
+        // TODO: Création de rappel
+        return "Action rappel pour: $command (non implémentée)"
     }
 }
