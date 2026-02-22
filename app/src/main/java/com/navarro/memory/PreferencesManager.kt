@@ -4,27 +4,16 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.navarro.core.Logger
 
-/**
- * Gère les préférences utilisateur (voix, surnom, etc.)
- */
 class PreferencesManager(context: Context) {
-
     private val prefs: SharedPreferences =
-        context.getSharedPreferences("navarro_prefs", Context.MODE_PRIVATE)
+        context.getSharedPreferences("NavarroAssistantPrefs", Context.MODE_PRIVATE)
 
-    fun sauvegarderPreference(cle: String, valeur: String) {
-        prefs.edit().putString(cle, valeur).apply()
-        Logger.i("PreferencesManager: sauvegardé [$cle] -> $valeur")
+    fun savePreference(key: String, value: String) {
+        prefs.edit().putString(key, value).apply()
+        Logger.d("Préférence sauvegardée: $key=$value")
     }
 
-    fun recupererPreference(cle: String, defaut: String = ""): String {
-        val valeur = prefs.getString(cle, defaut) ?: defaut
-        Logger.i("PreferencesManager: récupéré [$cle] -> $valeur")
-        return valeur
-    }
-
-    fun reinitialiserPreferences() {
-        prefs.edit().clear().apply()
-        Logger.i("PreferencesManager: préférences réinitialisées")
+    fun getPreference(key: String, default: String = ""): String {
+        return prefs.getString(key, default) ?: default
     }
 }
