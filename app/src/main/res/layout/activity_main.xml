@@ -1,39 +1,113 @@
-<!-- res/layout/activity_main.xml -->
+<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000">
+    android:background="@color/black">
 
-    <!-- Barre de progression (téléchargement) -->
-    <ProgressBar
-        android:id="@+id/progressBar"
+    <!-- En-tête -->
+    <TextView
+        android:id="@+id/header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:visibility="gone"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:max="100"
-        android:progress="0" />
+        android:text="⚡ NAVARRO"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:padding="16dp" />
 
-    <!-- Horloge analogique -->
-    <com.navarro.custom.ClockView
-        android:id="@+id/clockView"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
-        android:layout_centerInParent="true"
+    <!-- Animation holographique -->
+    <com.navarro.ui.HologramView
+        android:id="@+id/hologramView"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_centerInParent="true" />
+
+    <!-- Onde sonore (masquée par défaut) -->
+    <com.navarro.ui.WaveformView
+        android:id="@+id/waveformView"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_above="@+id/dynamicTextView"
         android:visibility="gone" />
 
-    <!-- Zone de texte pour les réponses -->
+    <!-- Zone texte dynamique -->
     <TextView
-        android:id="@+id/responseText"
+        android:id="@+id/dynamicTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_margin="16dp"
-        android:textColor="#00FF00"
-        android:textSize="18sp"
-        android:visibility="gone"
-        android:background="#33000000"
-        android:padding="8dp" />
+        android:layout_above="@+id/quickInfo"
+        android:text="Prêt. Dis \"Navarro\" pour commencer."
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:padding="16dp" />
 
+    <!-- Infos rapides -->
+    <LinearLayout
+        android:id="@+id/quickInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/commands"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="8dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="🌤 22°C"
+            android:textColor="@color/white"
+            android:gravity="center" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="📅 14:30"
+            android:textColor="@color/white"
+            android:gravity="center" />
+    </LinearLayout>
+
+    <!-- Commandes rapides -->
+    <LinearLayout
+        android:id="@+id/commands"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/status"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="8dp">
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Météo"
+            android:textColor="@color/white" />
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Agenda"
+            android:textColor="@color/white" />
+    </LinearLayout>
+
+    <!-- Indicateur de statut -->
+    <com.navarro.ui.StatusIndicatorView
+        android:id="@+id/statusView"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_alignParentBottom="true" />
+
+    <!-- Bouton d'activation -->
+    <Button
+        android:id="@+id/activateButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/statusView"
+        android:text="🎤 Touchez ou dites \"Navarro\""
+        android:textColor="@color/white"
+        android:background="@color/transparent" />
 </RelativeLayout>
