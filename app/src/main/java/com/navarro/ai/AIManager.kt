@@ -2,29 +2,73 @@ package com.navarro.ai
 
 import android.content.Context
 import com.navarro.core.Logger
+import okhttp3.*
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.IOException
 
 class AIManager(private val contexte: Context) {
 
-    private val localLLM = LocalLLMManager(contexte)
-    private val promptBuilder = PromptBuilder()
-    private val responseParser = AIResponseParser()
+    private val client = OkHttpClient()
 
-    /**
-     * Traite une commande vocale ou question et retourne le résultat
-     */
-    fun traiterCommande(commande: String): String {
-        Logger.i("AIManager: traitement de la commande -> $commande")
+    // 👉 Mets ta clé ici ou via BuildConfig
+    private val apiKey = "PD85t8aUMKTkZGDlAWhOWyxywwYRkSq1"
 
-        // Construction du prompt avec contexte
-        val prompt = promptBuilder.construirePrompt(commande)
+    private val systemPrompt =
+        "Tu es Navarro, assistant vocal style Jarvis. Réponds brièvement et naturellement."
 
-        // Appel modèle local ou LLM
-        val reponseBrute = localLLM.genererReponse(prompt)
+    fun askMistral(commande: String, callback: (String) -> Unit) {
+        try {
+            val body = JSONObject()
+                .put("model", "mistral-small-latest")
+                .put("messages", JSONArray()
+                    .put(JSONObject()
+                        .put("role", "system")
+                        .put("content", systemPrompt))
+                    .put(JSONObject()
+                        .put("role", "user")
+                        .put("content", commande))
+                )
 
-        // Analyse de la réponse pour déterminer action ou texte
-        val resultat = responseParser.analyserReponse(reponseBrute)
+            val request = Request.Builder()
+                .url("https://api.mistral.ai/v1/chat/completions")
+                .addHeader("Authorization", "Bearer $apiKey")
+                .addHeader("Content-Type", "application/json")
+                .post(RequestBody.create(
+                    "application/json".toMediaTypeOrNull(),
+                    body.toString()
+                ))
+                .build()
 
-        Logger.i("AIManager: résultat -> $resultat")
-        return resultat
+            client.newCall(request).enqueue(object : Callback {
+
+                override fun onFailure(call: Call, e: IOException) {
+                    Logger.e("Mistral API error", e)
+                    callback.invoke("Je n'ai pas compris.")
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    try {
+                        val json = JSONObject(response.body?.string() ?: "")
+                        val text = json
+                            .getJSONArray("choices")
+                            .getJSONObject(0)
+                            .getJSONObject("message")
+                            .getString("content")
+
+                        Logger.i("Réponse Mistral: $text")
+                        callback.invoke(text.trim())
+
+                    } catch (e: Exception) {
+                        Logger.e("Parsing Mistral error", e)
+                        callback.invoke("Erreur IA.")
+                    }
+                }
+            })
+
+        } catch (e: Exception) {
+            Logger.e("Mistral request error", e)
+            callback.invoke("Erreur réseau.")
+        }
     }
 }
