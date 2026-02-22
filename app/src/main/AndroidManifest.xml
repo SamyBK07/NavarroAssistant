@@ -1,49 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.navarro.hotword"> <!-- Remplace par ton package réel -->
+    package="com.navarro">
 
-    <!-- Permissions obligatoires -->
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" /> <!-- Pour ajuster le volume -->
-    <uses-permission android:name="android.permission.CALL_PHONE" /> <!-- Pour les appels -->
-    <uses-permission android:name="android.permission.SEND_SMS" /> <!-- Pour les SMS -->
-    <uses-permission android:name="android.permission.READ_CONTACTS" /> <!-- Pour accéder aux contacts -->
-    <uses-permission android:name="android.permission.CAMERA" /> <!-- Pour la lampe torche -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" /> <!-- Pour la navigation -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!-- Pour sauvegarder des fichiers -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- Pour lire des fichiers -->
-
-    <!-- Déclarations de fonctionnalités matérielles (optionnel mais recommandé) -->
-    <uses-feature android:name="android.hardware.camera" android:required="false" /> <!-- Pour la lampe torche -->
-    <uses-feature android:name="android.hardware.microphone" android:required="true" /> <!-- Microphone obligatoire -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
-        android:allowBackup="true"
-        android:label="Navarro"
-        android:theme="@style/Theme.NavarroAssistant"
-        android:requestLegacyExternalStorage="true"> <!-- Pour la compatibilité stockage -->
+        android:name=".core.App"
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
 
-        <!-- Service d'écoute (déjà présent) -->
-        <service
-            android:name=".hotword.HotwordService"
-            android:exported="false"
-            android:foregroundServiceType="microphone" />
-
-        <!-- Activity principale (déjà présente) -->
-        <activity
-            android:name=".MainActivity"
-            android:exported="true"
-            android:screenOrientation="portrait"> <!-- Orientation fixe -->
-
+        <activity android:name=".ui.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
 
+        <service
+            android:name=".hotword.HotwordService"
+            android:foregroundServiceType="microphone"
+            android:exported="false" />
+
+        <service
+            android:name=".voice.VoiceCommandService"
+            android:foregroundServiceType="microphone"
+            android:exported="false" />
+
+        <receiver android:name=".hotword.BootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>
