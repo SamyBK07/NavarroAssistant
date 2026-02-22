@@ -2,17 +2,39 @@ package com.navarro.voice
 
 import android.app.Service
 import android.content.Intent
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
+import com.navarro.ai.AIManager
 import com.navarro.core.AppConfig
 import com.navarro.core.Logger
 import com.navarro.hotword.HotwordService
+import com.navarro.hotword.NotificationHelper
 
 class VoiceCommandService : Service() {
 
     private var speechManager: SpeechRecognizerManager? = null
+    private lateinit var ttsManager: TextToSpeechManager
+    private lateinit var aiManager: AIManager
+
+    private val timeoutHandler = Handler(Looper.getMainLooper())
+    private val timeoutRunnable = Runnable {
+        Logger.w("Timeout commande")
+        restartHotword()
+    }
 
     override fun onCreate() {
         super.onCreate()
+
+        NotificationHelper.createChannel(this)
+        startForeground(
+            AppConfig.NOTIFICATION_COMMAND_ID,
+            NotificationHelper.buildCommandNotification(this)
+        )
+
+        ttsManager = TextToSpeechManager(this)
+        aiManager = AIManager(this)
+
         Logger.i("VoiceCommandService created")
     }
 
@@ -29,18 +51,35 @@ class VoiceCommandService : Service() {
     private fun startCommandListening() {
         if (speechManager != null) return
 
-        speechManager = SpeechRecognizerManager(this,
+        speechManager = SpeechRecognizerManager(
+            context = this,
             onResult = { text ->
-                Logger.i("Command: $text")
-                restartHotword()
+                Logger.i("Commande: $text")
+                timeoutHandler.removeCallbacks(timeoutRunnable)
+                traiterCommande(text)
             },
             onError = {
-                Logger.e("Command recognition error")
+                Logger.e("Erreur reconnaissance commande")
                 restartHotword()
             }
         )
 
         speechManager?.start()
+
+        // Timeout sécurité 8s
+        timeoutHandler.postDelayed(timeoutRunnable, 8000)
+    }
+
+    /**
+     * Pipeline IA → réponse vocale
+     */
+    private fun traiterCommande(commande: String) {
+        aiManager.askMistral(commande) { response ->
+            Logger.i("Réponse IA: $response")
+
+            ttsManager.speak(response)
+            restartHotword()
+        }
     }
 
     private fun restartHotword() {
@@ -56,6 +95,7 @@ class VoiceCommandService : Service() {
     }
 
     override fun onDestroy() {
+        timeoutHandler.removeCallbacks(timeoutRunnable)
         speechManager?.stop()
         Logger.i("VoiceCommandService destroyed")
         super.onDestroy()
