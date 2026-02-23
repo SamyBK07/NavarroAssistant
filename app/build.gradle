@@ -40,20 +40,33 @@ android {
     }
 }
 
-dependencies {
+// ⚠️ Déclarer le dossier libs pour ton .aar local
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
+}
 
+dependencies {
+    // AndroidX et UI
     implementation 'androidx.core:core-ktx:1.12.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
+    // VOSK local .aar
     implementation(name: 'vosk-android-0.3.47', ext: 'aar')
 
+    // ⚡ JNA obligatoire pour VOSK
+    implementation 'net.java.dev.jna:jna:5.13.0'
+
+    // Networking
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
     implementation 'com.squareup.okhttp3:okhttp:4.10.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:4.10.0'
 
+    // Room
     implementation "androidx.room:room-runtime:2.6.1"
     implementation "androidx.room:room-ktx:2.6.1"
     kapt "androidx.room:room-compiler:2.6.1"
