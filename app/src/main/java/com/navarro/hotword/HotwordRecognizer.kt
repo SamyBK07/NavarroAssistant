@@ -3,52 +3,61 @@ package com.navarro.hotword
 import android.content.Context
 import com.navarro.core.Logger
 import org.vosk.LibVosk
+import org.vosk.LogLevel
 import org.vosk.Model
 import org.vosk.Recognizer
 import org.vosk.android.RecognitionListener
 import org.vosk.android.SpeechService
-import org.vosk.android.SpeechStreamService
-import org.vosk.android.StorageService
 
 class HotwordRecognizer(
     private val context: Context,
     private val modelPath: String,
     private val onDetected: (ShortArray) -> Unit
 ) {
-    private var speechService: SpeechStreamService? = null
+    private var speechService: SpeechService? = null
     private var recognizer: Recognizer? = null
     private val audioBuffer = ShortArray(4096)
     private var isListening = false
 
     init {
-        LibVosk.setLogLevel(0) // Désactive les logs VOSK
-        StorageService.unpack(context, "hotword_grammar.json", "grammar", true)
+        LibVosk.setLogLevel(LogLevel.ERROR)
     }
 
     fun startListening() {
         if (isListening) return
+
         try {
             val model = Model(modelPath)
-            recognizer = Recognizer(model, 16000f, "[\"navarro\", \"[unk]\"]")
-            speechService = SpeechStreamService(recognizer, 16000f, "grammar").apply {
-                setListener(object : RecognitionListener {
-                    override fun onPartialResult(hypothesis: String?) {}
-                    override fun onResult(hypothesis: String?) {
-                        if (hypothesis?.contains("navarro") == true) {
-                            onDetected(audioBuffer)
-                        }
+
+            // Grammar JSON obligatoire pour hotword
+            recognizer = Recognizer(model, 16000.0f, """["navarro","[unk]"]""")
+
+            speechService = SpeechService(recognizer, 16000.0f)
+
+            val listener = object : RecognitionListener {
+                override fun onPartialResult(hypothesis: String?) {}
+
+                override fun onResult(hypothesis: String?) {
+                    if (hypothesis?.contains("navarro") == true) {
+                        onDetected(audioBuffer)
                     }
-                    override fun onError(e: Exception?) {
-                        Logger.e("Erreur HotwordRecognizer: ${e?.message}")
-                    }
-                    override fun onTimeout() {}
-                })
+                }
+
+                override fun onFinalResult(hypothesis: String?) {}
+
+                override fun onError(e: Exception?) {
+                    Logger.e("HotwordRecognizer error: ${e?.message}")
+                }
+
+                override fun onTimeout() {}
             }
-            speechService?.startListening()
+
+            speechService?.startListening(listener)
             isListening = true
             Logger.d("HotwordRecognizer démarré")
+
         } catch (e: Exception) {
-            Logger.e("Erreur initialisation HotwordRecognizer: ${e.message}")
+            Logger.e("HotwordRecognizer init error: ${e.message}")
         }
     }
 
