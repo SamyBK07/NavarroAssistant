@@ -3,6 +3,7 @@ package com.navarro.voice
 import android.content.Context
 import com.navarro.core.Logger
 import org.vosk.LibVosk
+import org.vosk.LogLevel
 import org.vosk.Model
 import org.vosk.Recognizer
 import org.vosk.android.RecognitionListener
@@ -18,31 +19,39 @@ class SpeechRecognizerManager(
     private var isListening = false
 
     init {
-        LibVosk.setLogLevel(0)
+        LibVosk.setLogLevel(LogLevel.ERROR)
     }
 
     fun startListening() {
         if (isListening) return
+
         try {
             val model = Model(modelPath)
-            recognizer = Recognizer(model, 16000f)
-            speechService = SpeechService(recognizer, 16000f).apply {
-                setListener(object : RecognitionListener {
-                    override fun onPartialResult(hypothesis: String?) {}
-                    override fun onResult(hypothesis: String?) {
-                        hypothesis?.let { onCommandRecognized(it) }
-                    }
-                    override fun onError(e: Exception?) {
-                        Logger.e("Erreur SpeechRecognizer: ${e?.message}")
-                    }
-                    override fun onTimeout() {}
-                })
+            recognizer = Recognizer(model, 16000.0f)
+            speechService = SpeechService(recognizer, 16000.0f)
+
+            val listener = object : RecognitionListener {
+                override fun onPartialResult(hypothesis: String?) {}
+
+                override fun onResult(hypothesis: String?) {
+                    hypothesis?.let { onCommandRecognized(it) }
+                }
+
+                override fun onFinalResult(hypothesis: String?) {}
+
+                override fun onError(e: Exception?) {
+                    Logger.e("SpeechRecognizer error: ${e?.message}")
+                }
+
+                override fun onTimeout() {}
             }
-            speechService?.startListening()
+
+            speechService?.startListening(listener)
             isListening = true
             Logger.d("SpeechRecognizer démarré")
+
         } catch (e: Exception) {
-            Logger.e("Erreur initialisation SpeechRecognizer: ${e.message}")
+            Logger.e("SpeechRecognizer init error: ${e.message}")
         }
     }
 
