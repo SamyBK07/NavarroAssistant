@@ -36,7 +36,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@+id/quickInfo"
-        android:text="Prêt. Dis \"Navarro\" pour commencer."
+        android:text="Prêt. Dis &quot;Navarro&quot; pour commencer."
         android:textColor="@color/white"
         android:textSize="16sp"
         android:gravity="center"
@@ -74,7 +74,7 @@
         android:id="@+id/commands"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/status"
+        android:layout_above="@+id/statusView"
         android:orientation="horizontal"
         android:gravity="center"
         android:padding="8dp">
@@ -107,7 +107,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@+id/statusView"
-        android:text="🎤 Touchez ou dites \"Navarro\""
+        android:text="🎤 Touchez ou dites &quot;Navarro&quot;"
         android:textColor="@color/white"
         android:background="@color/transparent" />
+
 </RelativeLayout>
