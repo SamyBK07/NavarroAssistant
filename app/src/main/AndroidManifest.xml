@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.navarro">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Permissions nécessaires -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -43,7 +43,8 @@
         <!-- Receiver pour démarrage au boot -->
         <receiver
             android:name=".hotword.BootReceiver"
-            android:exported="true">
+            android:exported="true"
+            android:enabled="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
