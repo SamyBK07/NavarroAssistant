@@ -16,7 +16,7 @@ object TextToSpeechManager : TextToSpeech.OnInitListener {
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             val result = tts?.setLanguage(Locale.FRENCH)
-            isInitialized = result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_AVAILABLE
+            isInitialized = result == TextToSpeech.LANG_AVAILABLE
             Logger.d("TTS initialisé: $isInitialized")
         } else {
             Logger.e("Erreur initialisation TTS")
