@@ -9,7 +9,6 @@ import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.navarro.ui.MainActivity
-import com.navarro.R
 
 object NotificationHelper {
     private const val CHANNEL_ID = "NavarroAssistantChannel"
@@ -29,7 +28,7 @@ object NotificationHelper {
         return NotificationCompat.Builder(context, CHANNEL_ID)
             .setContentTitle("NavarroAssistant")
             .setContentText("Écoute en cours...")
-            .setSmallIcon(R.drawable.ic_mic)
+            .setSmallIcon(android.R.drawable.ic_btn_speak_now)  // ✅ Icône système
             .setContentIntent(pendingIntent)
             .setOngoing(true)
             .build()
