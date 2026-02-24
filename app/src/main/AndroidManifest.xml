@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.navarro">
 
+    <!-- Permissions nécessaires -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -17,6 +19,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
+        <!-- Activity principale -->
         <activity
             android:name=".ui.MainActivity"
             android:exported="true">
@@ -26,6 +29,7 @@
             </intent-filter>
         </activity>
 
+        <!-- Services pour Hotword et commandes vocales -->
         <service
             android:name=".hotword.HotwordService"
             android:foregroundServiceType="microphone"
@@ -36,12 +40,14 @@
             android:foregroundServiceType="microphone"
             android:exported="false" />
 
+        <!-- Receiver pour démarrage au boot -->
         <receiver
             android:name=".hotword.BootReceiver"
-            android:exported="true"> <!-- ou false selon votre besoin -->
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+
     </application>
 </manifest>
