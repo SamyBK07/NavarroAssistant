@@ -6,8 +6,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
@@ -29,22 +28,23 @@
             </intent-filter>
         </activity>
 
-        <!-- Services pour Hotword et commandes vocales -->
+        <!-- Service Hotword (Picovoice) -->
         <service
             android:name=".hotword.HotwordService"
             android:foregroundServiceType="microphone"
             android:exported="false" />
 
+        <!-- Service Commandes Vocales -->
         <service
             android:name=".voice.VoiceCommandService"
             android:foregroundServiceType="microphone"
             android:exported="false" />
 
-        <!-- Receiver pour démarrage au boot -->
+        <!-- Receiver démarrage automatique -->
         <receiver
             android:name=".hotword.BootReceiver"
-            android:exported="true"
-            android:enabled="true">
+            android:enabled="true"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
