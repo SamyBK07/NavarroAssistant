@@ -3,7 +3,6 @@ package com.navarro.hotword
 import android.content.Context
 import com.navarro.core.Logger
 import org.vosk.LibVosk
-import org.vosk.LogLevel
 import org.vosk.Model
 import org.vosk.Recognizer
 import org.vosk.android.RecognitionListener
@@ -20,7 +19,7 @@ class HotwordRecognizer(
     private var isListening = false
 
     init {
-        LibVosk.setLogLevel(LogLevel.ERROR)
+        LibVosk.setLogLevel(-1)  // ✅ Remplace LogLevel.ERROR
     }
 
     fun startListening() {
@@ -28,27 +27,20 @@ class HotwordRecognizer(
 
         try {
             val model = Model(modelPath)
-
-            // Grammar JSON obligatoire pour hotword
             recognizer = Recognizer(model, 16000.0f, """["navarro","[unk]"]""")
-
             speechService = SpeechService(recognizer, 16000.0f)
 
             val listener = object : RecognitionListener {
                 override fun onPartialResult(hypothesis: String?) {}
-
                 override fun onResult(hypothesis: String?) {
                     if (hypothesis?.contains("navarro") == true) {
                         onDetected(audioBuffer)
                     }
                 }
-
                 override fun onFinalResult(hypothesis: String?) {}
-
                 override fun onError(e: Exception?) {
                     Logger.e("HotwordRecognizer error: ${e?.message}")
                 }
-
                 override fun onTimeout() {}
             }
 
