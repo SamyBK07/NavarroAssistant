@@ -19,7 +19,8 @@ class HotwordRecognizer(
     private var isListening = false
 
     init {
-        LibVosk.setLogLevel(0)  // ✅ Remplace LogLevel.ERROR
+        @Suppress("UNUSED_EXPRESSION")
+val _ = try { LibVosk.setLogLevel(org.vosk.LogLevel.ERROR) } catch (e: Exception) { 0 }
     }
 
     fun startListening() {
