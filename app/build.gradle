@@ -5,7 +5,6 @@ plugins {
 }
 
 android {
-    // ✅ namespace corrigé pour correspondre à tes packages Kotlin
     namespace 'com.navarro'
     compileSdk 34
 
@@ -38,20 +37,19 @@ android {
 
     packaging {
         jniLibs {
-            // ⚡ évite les conflits de librairies natives Vosk
             pickFirsts += ['**/*.so']
         }
     }
 }
 
-repositories {
-    google()
-    mavenCentral()
-    // ⚡ pour ton .aar local
-    flatDir {
-        dirs 'libs'
-    }
-}
+// ❌ SUPPRIME CE BLOC (déjà défini dans settings.gradle)
+// repositories {
+//     google()
+//     mavenCentral()
+//     flatDir {
+//         dirs 'libs'
+//     }
+// }
 
 dependencies {
     // AndroidX
