@@ -3,71 +3,78 @@ package com.navarro.ui
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.navarro.R
-import com.navarro.core.AppConfig
 import com.navarro.hotword.HotwordService
-import com.navarro.hotword.ModelDownloader
 import com.navarro.voice.TextToSpeechManager
 
 class MainActivity : AppCompatActivity() {
 
-    private val REQUEST_RECORD_AUDIO = 1
+    private val REQUEST_PERMISSIONS = 100
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Initialise TTS
         TextToSpeechManager.init(this)
 
-        // Permissions micro
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
-            != PackageManager.PERMISSION_GRANTED) {
+        checkPermissions()
+    }
+
+    private fun checkPermissions() {
+
+        val permissionsNeeded = mutableListOf(
+            Manifest.permission.RECORD_AUDIO
+        )
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissionsNeeded.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+
+        val notGranted = permissionsNeeded.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+
+        if (notGranted.isNotEmpty()) {
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(Manifest.permission.RECORD_AUDIO),
-                REQUEST_RECORD_AUDIO
+                notGranted.toTypedArray(),
+                REQUEST_PERMISSIONS
             )
         } else {
-            checkAndDownloadVoskModel()
+            startHotwordService()
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_RECORD_AUDIO && grantResults.isNotEmpty() &&
-            grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            checkAndDownloadVoskModel()
+
+        if (requestCode == REQUEST_PERMISSIONS &&
+            grantResults.all { it == PackageManager.PERMISSION_GRANTED }
+        ) {
+            startHotwordService()
         } else {
-            Toast.makeText(this, "Permission microphone requise", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                this,
+                "Permissions requises pour fonctionner",
+                Toast.LENGTH_LONG
+            ).show()
             finish()
         }
     }
 
-    private fun checkAndDownloadVoskModel() {
-        ModelDownloader.downloadVoskModel(
-            context = this,
-            onSuccess = {
-                runOnUiThread {
-                    Toast.makeText(this, "Modèle VOSK prêt !", Toast.LENGTH_SHORT).show()
-                    startHotwordService()
-                }
-            },
-            onError = { error ->
-                runOnUiThread {
-                    Toast.makeText(this, "Erreur: $error", Toast.LENGTH_LONG).show()
-                }
-            }
-        )
-    }
-
     private fun startHotwordService() {
-        startService(Intent(this, HotwordService::class.java))
+        val intent = Intent(this, HotwordService::class.java)
+        ContextCompat.startForegroundService(this, intent)
     }
 
     override fun onDestroy() {
