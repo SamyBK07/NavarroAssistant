@@ -2,8 +2,6 @@ package com.navarro.voice
 
 import android.content.Context
 import com.navarro.core.Logger
-import org.vosk.LibVosk
-import org.vosk.LogLevel
 import org.vosk.Model
 import org.vosk.Recognizer
 import org.vosk.android.RecognitionListener
@@ -17,14 +15,6 @@ class SpeechRecognizerManager(
     private var speechService: SpeechService? = null
     private var recognizer: Recognizer? = null
     private var isListening = false
-
-    init {
-        try {
-            LibVosk.setLogLevel(LogLevel.ERROR)
-        } catch (e: Exception) {
-            Logger.e("Vosk log level error: ${e.message}")
-        }
-    }
 
     fun startListening() {
         if (isListening) return
