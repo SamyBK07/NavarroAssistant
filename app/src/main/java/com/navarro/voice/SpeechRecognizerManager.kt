@@ -19,7 +19,7 @@ class SpeechRecognizerManager(
     private var isListening = false
 
     init {
-        LibVosk.setLogLevel(LogLevel.ERROR)
+        LibVosk.setLogLevel(0)
     }
 
     fun startListening() {
