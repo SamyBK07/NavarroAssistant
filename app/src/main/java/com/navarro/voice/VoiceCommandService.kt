@@ -4,7 +4,6 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import com.navarro.ai.RemoteAIManager
-import com.navarro.core.AppConfig
 import com.navarro.core.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,11 +19,9 @@ class VoiceCommandService : Service() {
         super.onCreate()
         Logger.d("VoiceCommandService démarré")
 
-        val modelPath = AppConfig.getVoskModelDir(application).absolutePath
-
+        // On utilise le SpeechRecognizer Android natif
         speechRecognizerManager = SpeechRecognizerManager(
-            context = this,
-            modelPath = modelPath
+            context = this
         ) { command ->
             processCommand(command)
         }
@@ -35,11 +32,14 @@ class VoiceCommandService : Service() {
     private fun processCommand(command: String) {
         CoroutineScope(Dispatchers.IO).launch {
             Logger.d("Commande reconnue : $command")
+
+            // Envoi à l'IA distante
             val response = RemoteAIManager.sendToMistral(command)
             Logger.d("Réponse Mistral : $response")
-            // TODO: vocaliser ou afficher UI
 
-            // Stop service et revenir au HotwordService
+            // TODO : vocaliser ou afficher dans l'UI
+
+            // Stop service et relancer le HotwordService
             stopSelf()
             val intent = Intent(this@VoiceCommandService, com.navarro.hotword.HotwordService::class.java)
             startService(intent)
