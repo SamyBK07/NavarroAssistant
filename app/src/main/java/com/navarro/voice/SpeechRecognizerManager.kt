@@ -3,7 +3,6 @@ package com.navarro.voice
 import android.content.Context
 import com.navarro.core.Logger
 import org.vosk.LibVosk
-import org.vosk.LogLevel
 import org.vosk.Model
 import org.vosk.Recognizer
 import org.vosk.android.RecognitionListener
@@ -20,9 +19,10 @@ class SpeechRecognizerManager(
 
     init {
         try {
-            LibVosk.setLogLevel(LogLevel.ERROR)
+            // 0 = désactive les logs Vosk
+            LibVosk.setLogLevel(0)
         } catch (e: Exception) {
-            Logger.e("SpeechRecognizer log level error: ${e.message}")
+            Logger.e("Vosk log level error: ${e.message}")
         }
     }
 
