@@ -20,9 +20,10 @@ class HotwordRecognizer(
 
     init {
         try {
-            LibVosk.setLogLevel(org.vosk.LogLevel.ERROR)
+            // 0 = désactive les logs Vosk
+            LibVosk.setLogLevel(0)
         } catch (e: Exception) {
-            Logger.e("HotwordRecognizer log level error: ${e.message}")
+            Logger.e("Vosk log level error: ${e.message}")
         }
     }
 
