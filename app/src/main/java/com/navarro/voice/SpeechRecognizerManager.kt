@@ -1,60 +1,85 @@
 package com.navarro.voice
 
 import android.content.Context
+import android.content.Intent
+import android.os.Bundle
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import com.navarro.core.Logger
-import org.vosk.Model
-import org.vosk.Recognizer
-import org.vosk.android.RecognitionListener
-import org.vosk.android.SpeechService
 
 class SpeechRecognizerManager(
     private val context: Context,
-    private val modelPath: String,
     private val onCommandRecognized: (String) -> Unit
 ) {
-    private var speechService: SpeechService? = null
-    private var recognizer: Recognizer? = null
+
+    private var speechRecognizer: SpeechRecognizer? = null
     private var isListening = false
 
     fun startListening() {
         if (isListening) return
 
-        try {
-            val model = Model(modelPath)
-            recognizer = Recognizer(model, 16000.0f)
-            speechService = SpeechService(recognizer, 16000.0f)
+        if (!SpeechRecognizer.isRecognitionAvailable(context)) {
+            Logger.e("Speech recognition non disponible sur cet appareil")
+            return
+        }
 
-            val listener = object : RecognitionListener {
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
 
-                override fun onPartialResult(hypothesis: String?) {}
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "fr-FR")
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
+        }
 
-                override fun onResult(hypothesis: String?) {
-                    hypothesis?.let { onCommandRecognized(it) }
-                }
+        speechRecognizer?.setRecognitionListener(object : RecognitionListener {
 
-                override fun onFinalResult(hypothesis: String?) {}
-
-                override fun onError(e: Exception?) {
-                    Logger.e("SpeechRecognizer error: ${e?.message}")
-                }
-
-                override fun onTimeout() {}
+            override fun onReadyForSpeech(params: Bundle?) {
+                Logger.d("Prêt pour commande vocale")
             }
 
-            speechService?.startListening(listener)
-            isListening = true
-            Logger.d("SpeechRecognizer démarré")
+            override fun onBeginningOfSpeech() {}
 
-        } catch (e: Exception) {
-            Logger.e("SpeechRecognizer init error: ${e.message}")
-        }
+            override fun onRmsChanged(rmsdB: Float) {}
+
+            override fun onBufferReceived(buffer: ByteArray?) {}
+
+            override fun onEndOfSpeech() {}
+
+            override fun onError(error: Int) {
+                Logger.e("SpeechRecognizer error: $error")
+                stopListening()
+            }
+
+            override fun onResults(results: Bundle?) {
+                val matches = results
+                    ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+
+                val text = matches?.firstOrNull()
+
+                text?.let {
+                    Logger.d("Commande reconnue: $it")
+                    onCommandRecognized(it)
+                }
+
+                stopListening()
+            }
+
+            override fun onPartialResults(partialResults: Bundle?) {}
+
+            override fun onEvent(eventType: Int, params: Bundle?) {}
+        })
+
+        speechRecognizer?.startListening(intent)
+        isListening = true
+        Logger.d("SpeechRecognizer Android démarré")
     }
 
     fun stopListening() {
-        speechService?.stop()
-        speechService = null
-        recognizer?.close()
-        recognizer = null
+        speechRecognizer?.stopListening()
+        speechRecognizer?.destroy()
+        speechRecognizer = null
         isListening = false
         Logger.d("SpeechRecognizer arrêté")
     }
