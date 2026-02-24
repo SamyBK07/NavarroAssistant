@@ -19,7 +19,7 @@ class HotwordRecognizer(
     private var isListening = false
 
     init {
-        LibVosk.setLogLevel(-1)  // ✅ Remplace LogLevel.ERROR
+        LibVosk.setLogLevel(0)  // ✅ Remplace LogLevel.ERROR
     }
 
     fun startListening() {
