@@ -5,11 +5,12 @@ plugins {
 }
 
 android {
-    namespace 'com.jarvis.assistant'
+    // ✅ namespace corrigé pour correspondre à tes packages Kotlin
+    namespace 'com.navarro'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.jarvis.assistant"
+        applicationId "com.navarro"
         minSdk 24
         targetSdk 34
         versionCode 1
@@ -37,8 +38,18 @@ android {
 
     packaging {
         jniLibs {
+            // ⚡ évite les conflits de librairies natives Vosk
             pickFirsts += ['**/*.so']
         }
+    }
+}
+
+repositories {
+    google()
+    mavenCentral()
+    // ⚡ pour ton .aar local
+    flatDir {
+        dirs 'libs'
     }
 }
 
