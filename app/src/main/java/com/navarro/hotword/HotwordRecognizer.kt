@@ -3,6 +3,7 @@ package com.navarro.hotword
 import android.content.Context
 import com.navarro.core.Logger
 import org.vosk.LibVosk
+import org.vosk.LogLevel
 import org.vosk.Model
 import org.vosk.Recognizer
 import org.vosk.android.RecognitionListener
@@ -20,8 +21,7 @@ class HotwordRecognizer(
 
     init {
         try {
-            // 0 = désactive les logs Vosk
-            LibVosk.setLogLevel(0)
+            LibVosk.setLogLevel(LogLevel.ERROR)
         } catch (e: Exception) {
             Logger.e("Vosk log level error: ${e.message}")
         }
