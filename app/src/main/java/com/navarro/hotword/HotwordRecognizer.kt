@@ -19,8 +19,11 @@ class HotwordRecognizer(
     private var isListening = false
 
     init {
-        @Suppress("UNUSED_EXPRESSION")
-val _ = try { LibVosk.setLogLevel(org.vosk.LogLevel.ERROR) } catch (e: Exception) { 0 }
+        try {
+            LibVosk.setLogLevel(org.vosk.LogLevel.ERROR)
+        } catch (e: Exception) {
+            Logger.e("HotwordRecognizer log level error: ${e.message}")
+        }
     }
 
     fun startListening() {
@@ -32,16 +35,21 @@ val _ = try { LibVosk.setLogLevel(org.vosk.LogLevel.ERROR) } catch (e: Exception
             speechService = SpeechService(recognizer, 16000.0f)
 
             val listener = object : RecognitionListener {
+
                 override fun onPartialResult(hypothesis: String?) {}
+
                 override fun onResult(hypothesis: String?) {
-                    if (hypothesis?.contains("navarro") == true) {
+                    if (hypothesis?.contains("navarro", ignoreCase = true) == true) {
                         onDetected(audioBuffer)
                     }
                 }
+
                 override fun onFinalResult(hypothesis: String?) {}
+
                 override fun onError(e: Exception?) {
                     Logger.e("HotwordRecognizer error: ${e?.message}")
                 }
+
                 override fun onTimeout() {}
             }
 
