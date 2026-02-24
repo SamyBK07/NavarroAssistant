@@ -20,7 +20,7 @@ class HotwordRecognizer(
             val keywordPath = "navarro_android.ppn" // placé dans assets/
 
             porcupineManager = PorcupineManager.Builder()
-                .setAccessKey("TON_ACCESS_KEY_ICI")
+                .setAccessKey("4Goo3OCmV2nSDzSeQ5xj6uEJaV2+aFLFmi3QIUtacO1FB9ToOahCsA==")
                 .setKeywordPath(keywordPath)
                 .setSensitivity(0.7f)
                 .build(
