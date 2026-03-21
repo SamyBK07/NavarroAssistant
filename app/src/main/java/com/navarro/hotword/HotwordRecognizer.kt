@@ -12,7 +12,8 @@ import java.io.FileOutputStream
 
 class VoskRecognizer(
     private val context: Context,
-    private val onResult: (String) -> Unit
+    private val onResult: (String) -> Unit,
+    private val isHotwordMode: Boolean = true  // true = mot-clé, false = commande
 ) {
     private var model: Model? = null
     private var speechService: SpeechService? = null
@@ -20,29 +21,29 @@ class VoskRecognizer(
 
     fun startListening() {
         if (isListening) {
-            Logger.w("Vosk est déjà en écoute")
+            Logger.w("Vosk est déjà en écoute (mode ${if (isHotwordMode) "mot-clé" else "commande"})")
             return
         }
 
         Thread {
             try {
-                val modelPath = copyAssetFolder("vosk-model-small-fr") // Vérifie le nom exact dans assets
+                val modelPath = copyAssetFolder("vosk-model-small-fr")
                 model = Model(modelPath.absolutePath)
                 val recognizer = Recognizer(model, 16000.0f)
 
                 speechService = SpeechService(recognizer, 16000.0f)
                 speechService?.startListening { result ->
                     Handler(Looper.getMainLooper()).post {
-                        Logger.d("Résultat Vosk: $result")
+                        Logger.d("Résultat Vosk (${if (isHotwordMode) "mot-clé" else "commande"}): $result")
                         onResult(result)
                     }
                 }
 
                 isListening = true
-                Logger.d("Vosk démarré avec succès")
+                Logger.d("Vosk démarré en mode ${if (isHotwordMode) "mot-clé" else "commande"}")
 
             } catch (e: Exception) {
-                Logger.e("Échec du démarrage de Vosk: ${e.message}")
+                Logger.e("Échec du démarrage de Vosk (${if (isHotwordMode) "mot-clé" else "commande"}): ${e.message}")
                 Handler(Looper.getMainLooper()).post {
                     onResult("{\"error\": \"Échec de l'initialisation de Vosk\"}")
                 }
@@ -63,6 +64,7 @@ class VoskRecognizer(
             speechService = null
             model = null
             isListening = false
+            Logger.d("Vosk arrêté (mode ${if (isHotwordMode) "mot-clé" else "commande"})")
         }
     }
 
@@ -81,7 +83,6 @@ class VoskRecognizer(
 
     private fun copyAssetsRecursive(path: String, outFile: File) {
         val assets = context.assets.list(path) ?: throw RuntimeException("Dossier $path introuvable dans assets")
-
         if (assets.isEmpty()) {
             // Fichier
             context.assets.open(path).use { input ->
