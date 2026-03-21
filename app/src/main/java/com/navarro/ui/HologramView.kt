@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
+import kotlin.math.min
 
 class HologramView @JvmOverloads constructor(
     context: Context,
@@ -13,17 +14,19 @@ class HologramView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
-    private val paint = Paint().apply {
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.BLUE
         style = Paint.Style.FILL
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        // Dessine un cercle (exemple simple)
+
         val centerX = width / 2f
         val centerY = height / 2f
-        val radius = (Math.min(width, height) / 2.5).toFloat()
+
+        val radius = min(width, height) / 3f
+
         canvas.drawCircle(centerX, centerY, radius, paint)
     }
 }
