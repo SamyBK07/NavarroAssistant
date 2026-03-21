@@ -53,6 +53,9 @@ dependencies {
     // 🔥 Picovoice Porcupine
     implementation "ai.picovoice:porcupine-android:3.0.2"
 
+    // 🔊 Vosk (AJOUT ICI)
+    implementation 'org.vosk:vosk-android:0.3.47'
+
     // Networking
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
