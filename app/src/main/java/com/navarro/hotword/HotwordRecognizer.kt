@@ -22,7 +22,7 @@ class VoskRecognizer(
 
     fun startListening() {
         if (isListening) {
-            Logger.w("Vosk est déjà en écoute (mode ${if (isHotwordMode) "mot-clé" else "commande"})")
+            Logger.w("Vosk déjà en écoute (${mode()})")
             return
         }
 
@@ -30,47 +30,50 @@ class VoskRecognizer(
             try {
                 val modelPath = copyAssetFolder("vosk-model-small-fr")
                 model = Model(modelPath.absolutePath)
+
                 val recognizer = Recognizer(model, 16000.0f)
 
                 speechService = SpeechService(recognizer, 16000.0f)
+
                 speechService?.startListening(object : RecognitionListener {
+
                     override fun onPartialResult(result: String) {
-                        Logger.d("Résultat partiel Vosk: $result")
+                        Logger.d("Partiel: $result")
                     }
 
                     override fun onResult(result: String) {
                         Handler(Looper.getMainLooper()).post {
-                            Logger.d("Résultat Vosk (${if (isHotwordMode) "mot-clé" else "commande"}): $result")
+                            Logger.d("Résultat (${mode()}): $result")
                             onResult(result)
                         }
                     }
 
                     override fun onFinalResult(result: String) {
-                        Logger.d("Résultat final Vosk: $result")
+                        Logger.d("Final: $result")
                     }
 
                     override fun onError(exception: Exception) {
                         Logger.e("Erreur Vosk: ${exception.message}")
                         Handler(Looper.getMainLooper()).post {
-                            onResult("{\"error\": \"Erreur de reconnaissance: ${exception.message}\"}")
+                            onResult("ERROR: ${exception.message}")
                         }
                     }
 
                     override fun onTimeout() {
                         Logger.w("Timeout Vosk")
                         Handler(Looper.getMainLooper()).post {
-                            onResult("{\"error\": \"Timeout de reconnaissance\"}")
+                            onResult("TIMEOUT")
                         }
                     }
                 })
 
                 isListening = true
-                Logger.d("Vosk démarré en mode ${if (isHotwordMode) "mot-clé" else "commande"}")
+                Logger.d("Vosk démarré (${mode()})")
 
             } catch (e: Exception) {
-                Logger.e("Échec du démarrage de Vosk (${if (isHotwordMode) "mot-clé" else "commande"}): ${e.message}")
+                Logger.e("Échec Vosk (${mode()}): ${e.message}")
                 Handler(Looper.getMainLooper()).post {
-                    onResult("{\"error\": \"Échec de l'initialisation de Vosk\"}")
+                    onResult("ERROR: INIT FAILED")
                 }
             }
         }.start()
@@ -84,13 +87,17 @@ class VoskRecognizer(
             speechService?.shutdown()
             model?.close()
         } catch (e: Exception) {
-            Logger.e("Erreur lors de l'arrêt de Vosk: ${e.message}")
+            Logger.e("Erreur arrêt Vosk: ${e.message}")
         } finally {
             speechService = null
             model = null
             isListening = false
-            Logger.d("Vosk arrêté (mode ${if (isHotwordMode) "mot-clé" else "commande"})")
+            Logger.d("Vosk arrêté (${mode()})")
         }
+    }
+
+    private fun mode(): String {
+        return if (isHotwordMode) "mot-clé" else "commande"
     }
 
     private fun copyAssetFolder(assetName: String): File {
@@ -101,17 +108,16 @@ class VoskRecognizer(
             copyAssetsRecursive(assetName, outDir)
             return outDir
         } catch (e: Exception) {
-            Logger.e("Échec de la copie du modèle Vosk: ${e.message}")
-            throw RuntimeException("Modèle Vosk introuvable dans assets/$assetName")
+            Logger.e("Erreur copie modèle: ${e.message}")
+            throw RuntimeException("Modèle Vosk introuvable: assets/$assetName")
         }
     }
 
     private fun copyAssetsRecursive(path: String, outFile: File) {
         val assets = context.assets.list(path)
-            ?: throw RuntimeException("Dossier $path introuvable dans assets")
+            ?: throw RuntimeException("Dossier introuvable: $path")
 
         if (assets.isEmpty()) {
-            // Fichier
             outFile.parentFile?.mkdirs()
             context.assets.open(path).use { input ->
                 FileOutputStream(outFile).use { output ->
@@ -119,7 +125,6 @@ class VoskRecognizer(
                 }
             }
         } else {
-            // Dossier
             outFile.mkdirs()
             assets.forEach { file ->
                 copyAssetsRecursive("$path/$file", File(outFile, file))
