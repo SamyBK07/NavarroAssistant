@@ -6,6 +6,7 @@ import android.os.Looper
 import com.navarro.core.Logger
 import org.vosk.Model
 import org.vosk.Recognizer
+import org.vosk.android.RecognitionListener
 import org.vosk.android.SpeechService
 import java.io.File
 import java.io.FileOutputStream
@@ -32,12 +33,25 @@ class VoskRecognizer(
                 val recognizer = Recognizer(model, 16000.0f)
 
                 speechService = SpeechService(recognizer, 16000.0f)
-                speechService?.startListening { result ->
-                    Handler(Looper.getMainLooper()).post {
-                        Logger.d("Résultat Vosk (${if (isHotwordMode) "mot-clé" else "commande"}): $result")
-                        onResult(result)
+                speechService?.startListening(object : RecognitionListener {
+                    override fun onResult(result: String) {
+                        Handler(Looper.getMainLooper()).post {
+                            Logger.d("Résultat Vosk (${if (isHotwordMode) "mot-clé" else "commande"}): $result")
+                            onResult(result)
+                        }
                     }
-                }
+
+                    override fun onPartialResult(result: String) {
+                        // Optionnel : Traiter les résultats partiels si nécessaire
+                    }
+
+                    override fun onError(exception: Exception) {
+                        Logger.e("Erreur Vosk: ${exception.message}")
+                        Handler(Looper.getMainLooper()).post {
+                            onResult("{\"error\": \"Erreur de reconnaissance Vosk\"}")
+                        }
+                    }
+                })
 
                 isListening = true
                 Logger.d("Vosk démarré en mode ${if (isHotwordMode) "mot-clé" else "commande"}")
