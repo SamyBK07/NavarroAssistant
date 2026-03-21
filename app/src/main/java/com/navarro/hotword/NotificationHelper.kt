@@ -8,8 +8,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import com.navarro.ui.MainActivity
 import com.navarro.R
+import com.navarro.ui.MainActivity
 
 object NotificationHelper {
     private const val CHANNEL_ID = "NavarroAssistantChannel"
@@ -30,21 +30,19 @@ object NotificationHelper {
         )
 
         return NotificationCompat.Builder(context, CHANNEL_ID)
-            .setContentTitle("NavarroAssistant")
+            .setContentTitle("Navarro Assistant")
             .setContentText("Écoute en cours...")
-            .setSmallIcon(R.drawable.ic_microphone) // ✅ ton icône
+            .setSmallIcon(android.R.drawable.ic_dialog_info)  // Icône système par défaut
             .setContentIntent(pendingIntent)
             .setOngoing(true)
-            .setCategory(NotificationCompat.CATEGORY_SERVICE) // ✅ important
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC) // ✅ lockscreen
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .build()
     }
 
     private fun createNotificationChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-
-            val manager = context.getSystemService(NotificationManager::class.java)
-
+            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val existingChannel = manager.getNotificationChannel(CHANNEL_ID)
             if (existingChannel != null) return
 
@@ -55,7 +53,6 @@ object NotificationHelper {
             ).apply {
                 description = "Service d'écoute vocale en continu"
             }
-
             manager.createNotificationChannel(channel)
         }
     }
