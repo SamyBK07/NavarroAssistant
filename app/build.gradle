@@ -54,7 +54,7 @@ dependencies {
     implementation "ai.picovoice:porcupine-android:3.0.2"
 
     // 🔊 Vosk (AJOUT ICI)
-    implementation 'org.vosk:vosk-android:0.3.45'
+    implementation 'com.github.alphacep:vosk-android:0.3.32'
 
     // Networking
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
