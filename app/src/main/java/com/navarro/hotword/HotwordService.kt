@@ -5,6 +5,13 @@ import android.content.Intent
 import android.os.IBinder
 import com.navarro.core.Logger
 import org.json.JSONObject
+import org.vosk.LibVosk
+import org.vosk.Model
+import org.vosk.Recognizer
+import org.vosk.android.RecognitionListener
+import org.vosk.android.SpeechService
+import org.vosk.android.SpeechStreamService
+import org.vosk.android.StorageService
 
 class HotwordService : Service() {
 
@@ -15,35 +22,47 @@ class HotwordService : Service() {
     override fun onCreate() {
         super.onCreate()
 
+        // Créer la notification en premier (obligatoire pour Android 8+)
         startForeground(1, NotificationHelper.createNotification(this))
 
-        voskRecognizer = VoskRecognizer(this) { result ->
+        try {
+            // Charger le modèle Vosk depuis assets
+            val model = Model(StorageService.unpack(this, "vosk-model", "model"))
+            val recognizer = Recognizer(model, 16000.0f)
 
-            try {
-                val text = JSONObject(result).optString("text")
+            voskRecognizer = VoskRecognizer(this, recognizer) { result ->
+                try {
+                    val text = JSONObject(result).optString("text")
+                    if (text.contains("navarro", ignoreCase = true)) {
+                        Logger.d("Mot clé détecté via Vosk")
+                        voskRecognizer.stopListening()
 
-                if (text.contains("navarro", ignoreCase = true)) {
-
-                    Logger.d("Mot clé détecté via Vosk")
-
-                    voskRecognizer.stopListening()
-
-                    val intent = Intent(this, com.navarro.voice.VoiceCommandService::class.java)
-
-                    startForegroundService(intent) // ⚠️ important Android 8+
+                        // Démarrer le service de commande vocale
+                        val intent = Intent(this, com.navarro.voice.VoiceCommandService::class.java)
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                            startForegroundService(intent)
+                        } else {
+                            startService(intent)
+                        }
+                    }
+                } catch (e: Exception) {
+                    Logger.e("Erreur de parsing Vosk : ${e.message}")
                 }
-
-            } catch (e: Exception) {
-                Logger.e("Parsing error: ${e.message}")
             }
-        }
 
-        voskRecognizer.startListening()
-        Logger.d("HotwordService Vosk démarré")
+            voskRecognizer.startListening()
+            Logger.d("HotwordService Vosk démarré avec succès")
+
+        } catch (e: Exception) {
+            Logger.e("Échec de l'initialisation de Vosk : ${e.message}")
+            stopSelf() // Arrêter le service si Vosk ne démarre pas
+        }
     }
 
     override fun onDestroy() {
-        voskRecognizer.stopListening()
+        if (::voskRecognizer.isInitialized) {
+            voskRecognizer.stopListening()
+        }
         Logger.d("HotwordService arrêté")
         super.onDestroy()
     }
