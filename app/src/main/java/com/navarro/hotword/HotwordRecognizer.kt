@@ -14,7 +14,7 @@ import java.io.FileOutputStream
 class VoskRecognizer(
     private val context: Context,
     private val onResult: (String) -> Unit,
-    private val isHotwordMode: Boolean = true  // true = mot-clé, false = commande
+    private val isHotwordMode: Boolean = true
 ) {
     private var model: Model? = null
     private var speechService: SpeechService? = null
@@ -85,9 +85,12 @@ class VoskRecognizer(
     }
 
     private fun copyAssetsRecursive(path: String, outFile: File) {
-        val assets = context.assets.list(path) ?: throw RuntimeException("Dossier $path introuvable dans assets")
+        val assets = context.assets.list(path)
+            ?: throw RuntimeException("Dossier $path introuvable dans assets")
+
         if (assets.isEmpty()) {
             // Fichier
+            outFile.parentFile?.mkdirs() // sécurité
             context.assets.open(path).use { input ->
                 FileOutputStream(outFile).use { output ->
                     input.copyTo(output)
@@ -95,7 +98,7 @@ class VoskRecognizer(
             }
         } else {
             // Dossier
-            outDir.mkdirs()
+            outFile.mkdirs() // ✅ correction ici
             assets.forEach { file ->
                 copyAssetsRecursive("$path/$file", File(outFile, file))
             }
