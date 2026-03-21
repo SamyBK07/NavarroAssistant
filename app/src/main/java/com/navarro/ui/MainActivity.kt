@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -63,12 +64,26 @@ class MainActivity : AppCompatActivity() {
         ) {
             startHotwordService()
         } else {
-            Toast.makeText(
-                this,
-                "Permissions requises pour fonctionner",
-                Toast.LENGTH_LONG
-            ).show()
-            finish()
+
+            val permanentlyDenied = permissions.any {
+                !ActivityCompat.shouldShowRequestPermissionRationale(this, it)
+            }
+
+            if (permanentlyDenied) {
+                Toast.makeText(
+                    this,
+                    "Active les permissions dans les paramètres",
+                    Toast.LENGTH_LONG
+                ).show()
+
+                startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS))
+            } else {
+                Toast.makeText(
+                    this,
+                    "Permissions requises pour fonctionner",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
     }
 
