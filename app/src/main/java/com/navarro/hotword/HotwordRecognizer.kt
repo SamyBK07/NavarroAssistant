@@ -34,10 +34,32 @@ class VoskRecognizer(
 
                 speechService = SpeechService(recognizer, 16000.0f)
                 speechService?.startListening(object : RecognitionListener {
+                    override fun onPartialResult(result: String) {
+                        Logger.d("Résultat partiel Vosk: $result")
+                    }
+
                     override fun onResult(result: String) {
                         Handler(Looper.getMainLooper()).post {
                             Logger.d("Résultat Vosk (${if (isHotwordMode) "mot-clé" else "commande"}): $result")
                             onResult(result)
+                        }
+                    }
+
+                    override fun onFinalResult(result: String) {
+                        Logger.d("Résultat final Vosk: $result")
+                    }
+
+                    override fun onError(exception: Exception) {
+                        Logger.e("Erreur Vosk: ${exception.message}")
+                        Handler(Looper.getMainLooper()).post {
+                            onResult("{\"error\": \"Erreur de reconnaissance: ${exception.message}\"}")
+                        }
+                    }
+
+                    override fun onTimeout() {
+                        Logger.w("Timeout Vosk")
+                        Handler(Looper.getMainLooper()).post {
+                            onResult("{\"error\": \"Timeout de reconnaissance\"}")
                         }
                     }
                 })
@@ -90,7 +112,7 @@ class VoskRecognizer(
 
         if (assets.isEmpty()) {
             // Fichier
-            outFile.parentFile?.mkdirs() // sécurité
+            outFile.parentFile?.mkdirs()
             context.assets.open(path).use { input ->
                 FileOutputStream(outFile).use { output ->
                     input.copyTo(output)
@@ -98,7 +120,7 @@ class VoskRecognizer(
             }
         } else {
             // Dossier
-            outFile.mkdirs() // ✅ correction ici
+            outFile.mkdirs()
             assets.forEach { file ->
                 copyAssetsRecursive("$path/$file", File(outFile, file))
             }
