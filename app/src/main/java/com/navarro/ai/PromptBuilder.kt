@@ -5,9 +5,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.CopyOnWriteArrayList
 
-/**
- * Construit le contexte conversationnel pour Mistral Chat API
- */
 class PromptBuilder {
 
     private val historique = CopyOnWriteArrayList<JSONObject>()
@@ -16,9 +13,6 @@ class PromptBuilder {
         .put("role", "system")
         .put("content", "Tu es Navarro, assistant vocal style Jarvis. Réponds brièvement et naturellement.")
 
-    /**
-     * Ajoute message utilisateur et retourne le tableau messages complet
-     */
     fun construireMessages(commande: String): JSONArray {
         val userMsg = JSONObject()
             .put("role", "user")
@@ -26,21 +20,20 @@ class PromptBuilder {
 
         historique.add(userMsg)
 
-        // Limite mémoire conversationnelle
-        val derniers = historique.takeLast(10)
+        // Limite mémoire conversationnelle stricte
+        if (historique.size > 20) {
+            historique.removeAt(0)
+        }
 
         val messages = JSONArray()
         messages.put(systemMessage)
 
-        derniers.forEach { messages.put(it) }
+        historique.forEach { messages.put(it) }
 
-        Logger.i("PromptBuilder: messages générés -> $messages")
+        Logger.i("PromptBuilder: ${historique.size} messages")
         return messages
     }
 
-    /**
-     * Ajoute la réponse IA pour continuité conversationnelle
-     */
     fun ajouterReponseIA(reponse: String) {
         val aiMsg = JSONObject()
             .put("role", "assistant")
