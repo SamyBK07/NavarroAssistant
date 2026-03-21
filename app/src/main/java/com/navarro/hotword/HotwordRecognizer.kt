@@ -40,17 +40,6 @@ class VoskRecognizer(
                             onResult(result)
                         }
                     }
-
-                    override fun onPartialResult(result: String) {
-                        // Optionnel : Traiter les résultats partiels si nécessaire
-                    }
-
-                    override fun onError(exception: Exception) {
-                        Logger.e("Erreur Vosk: ${exception.message}")
-                        Handler(Looper.getMainLooper()).post {
-                            onResult("{\"error\": \"Erreur de reconnaissance Vosk\"}")
-                        }
-                    }
                 })
 
                 isListening = true
@@ -106,7 +95,7 @@ class VoskRecognizer(
             }
         } else {
             // Dossier
-            outFile.mkdirs()
+            outDir.mkdirs()
             assets.forEach { file ->
                 copyAssetsRecursive("$path/$file", File(outFile, file))
             }
